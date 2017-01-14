@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.addiks.net/xmlns/gmattermost/profile.xsd"
+    elementFormDefault="qualified"
+>
+    <xs:element name="profile">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="teams"            type="Teams" />
+            </xs:choice>
+        </xs:complexType>
+        <xs:attribute name="created-at" type="xs:string" />
+        <xs:attribute name="show-on-startup" type="xs:boolean" />
+    </xs:element>
+
+    <xs:complexType name="Teams">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="team"       type="Team" />
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="Team">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="url"             type="xs:string" />
+                <xs:attribute name="team"            type="xs:string" />
+                <xs:attribute name="username"        type="xs:string" />
+                <xs:attribute name="password"        type="xs:string" />
+                <xs:attribute name="open-on-startup" type="xs:boolean" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+</xs:schema>
