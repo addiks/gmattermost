@@ -55,8 +55,10 @@ class TeamsListController:
 
             url = treeModel.get_value(treeIter, 0)
             username = treeModel.get_value(treeIter, 1)
-            password = treeModel.get_value(treeIter, 2)
             teamName = treeModel.get_value(treeIter, 3)
+            password = treeModel.get_value(treeIter, 4)
+
+            print([url, username, password, teamName])
 
             login = EditTeamController(
                 self.__application,
@@ -85,17 +87,18 @@ class TeamsListController:
         teamsSelection = self.__gladeBuilder.get_object('treeviewSelectionMainTeams')
 
         # Gtk.TreeModel
-        treeModel, selectedTreePaths = teamsSelection.get_selected_rows()
+        teamsListstore, selectedTreePaths = teamsSelection.get_selected_rows()
 
         for treePath in selectedTreePaths:
             # Gtk.TreeRowReference
 
             # Gtk.TreeIter
-            treeIter = treeModel.get_iter(treePath)
+            treeIter = teamsListstore.get_iter(treePath)
 
-            url = treeModel.get_value(treeIter, 0)
-            username = treeModel.get_value(treeIter, 1)
-            teamName = treeModel.get_value(treeIter, 3)
+            url = teamsListstore.get_value(treeIter, 0)
+            username = teamsListstore.get_value(treeIter, 1)
+            teamName = teamsListstore.get_value(treeIter, 3)
+
             profile.removeTeam(url, teamName, username)
 
         self.__rebuildTeamsList()
@@ -104,6 +107,26 @@ class TeamsListController:
         # ProfileModel
         profile = self.__application.getProfileModel()
         profile.setShowOnStartup(checkbox.get_active())
+
+    def onConnectTeamOnStartupToggled(self, cellRenderer, treePath, data=None):
+        # Gtk.ListStore
+        teamsListstore = self.__gladeBuilder.get_object('liststoreMainTeams')
+
+        # ProfileModel
+        profile = self.__application.getProfileModel()
+
+        # Gtk.TreeIter
+        treeIter = teamsListstore.get_iter(treePath)
+
+        url = teamsListstore.get_value(treeIter, 0)
+        username = teamsListstore.get_value(treeIter, 1)
+        doesConnectOnStartup = teamsListstore.get_value(treeIter, 2)
+        teamName = teamsListstore.get_value(treeIter, 3)
+
+        doesConnectOnStartup = not doesConnectOnStartup
+
+        teamsListstore.set_value(treeIter, 2, doesConnectOnStartup)
+        profile.setConnectTeamOnStartup(url, teamName, username, doesConnectOnStartup)
 
     def run(self):
         self.__window.show_all()
@@ -121,7 +144,8 @@ class TeamsListController:
             # Gtk.TreeIter
             treeIter = teamsListstore.append()
 
-            teamsListstore.set_value(treeIter, 0, team['url']) # team_url
-            teamsListstore.set_value(treeIter, 1, team['username']) # user_name
-            teamsListstore.set_value(treeIter, 2, team['open-on-startup']) # open_on_startup
-            teamsListstore.set_value(treeIter, 3, team['team']) # team_name
+            teamsListstore.set_value(treeIter, 0, team['url'])
+            teamsListstore.set_value(treeIter, 1, team['username'])
+            teamsListstore.set_value(treeIter, 2, team['open-on-startup'])
+            teamsListstore.set_value(treeIter, 3, team['team'])
+            teamsListstore.set_value(treeIter, 4, team['password'])

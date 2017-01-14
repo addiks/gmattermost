@@ -41,21 +41,12 @@ class MattermostServerModel:
             self.ping()
         return self.__isReachable
 
-    def listTeams(self):
-        pass
-
     def login(self, username, password):
 
         if not self.isReachable():
             raise Exception("Mattermost-Server %s is not reachable!" % self.__url)
 
         url = self.__url + "/api/v3/users/login"
-
-        print("A")
-        print(json.dumps({
-            'login_id': username,
-            'password': password
-        }))
 
         responseHeaders, contentJson = self.__http.request(url, "POST", body=json.dumps({
             'login_id': username,
@@ -67,9 +58,6 @@ class MattermostServerModel:
 
         content = json.loads(contentJson)
 
-        print(content)
-        print(responseHeaders)
-
         if "token" in responseHeaders:
             self.__token = responseHeaders['token']
 
@@ -78,3 +66,42 @@ class MattermostServerModel:
 
         else:
             raise Exception("Cannot login on this server!")
+
+    def listTeams(self):
+        headers, teams = self.__callServer("/teams/all")
+
+        print(headers)
+        print(teams)
+
+        return teams
+
+    def __callServer(self, route, data=None):
+        if not self.isReachable():
+            raise Exception("Mattermost-Server %s is not reachable!" % self.__url)
+
+        if self.__token == None:
+            raise Exception("Mattermost-Server %s is not logged in!" % self.__url)
+
+        url = self.__url + "/api/v3" + route
+
+        headers = {
+            'Authorization': "Bearer " + self.__token
+        }
+
+        dataJson = None
+        if data != None:
+            dataJson = json.dumps(data)
+
+        responseHeaders, contentJson = self.__http.request(
+            url,
+            "GET",
+            body=dataJson,
+            headers=headers
+        )
+
+        if type(contentJson) == bytes:
+            contentJson = contentJson.decode()
+
+        content = json.loads(contentJson)
+
+        return responseHeaders, content

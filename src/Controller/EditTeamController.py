@@ -124,13 +124,6 @@ class EditTeamController:
         if len(password) <= 0:
             return
 
-#        try:
-#            server.login(username, password)
-#
-#        except:
-#            passwordCheckLabel.set_text('Cannot login using this username/password combination!')
-#            return
-
         passwordCheckLabel.set_text('OK')
 
         ### VALIDATE TEAM NAME
@@ -174,6 +167,11 @@ class EditTeamController:
 
         password = passwordInput.get_text()
 
+        # Gtk.Entry
+        teamInput = gladeBuilder.get_object('entryEditTeamTeam')
+
+        teamName = teamInput.get_text()
+
         server = self.__application.getServerModel(url)
 
         checkConnectionLabel = gladeBuilder.get_object('labelEditTeamCheckConnection')
@@ -181,9 +179,18 @@ class EditTeamController:
         try:
             server.login(username, password)
 
+            teams = server.listTeams()
+
+            foundTeam = False
+            for teamId in teams:
+                if teams[teamId]['display_name'] == teamName:
+                    foundTeam = True
+            if not foundTeam:
+                raise Exception("Team '%s' not found or accassible to you!" % teamName)
+
             dialog = Gtk.Dialog(
                 "Success!",
-                None,
+                self.__window,
                 0,
                 (Gtk.STOCK_OK, Gtk.ResponseType.OK)
             )
@@ -192,11 +199,13 @@ class EditTeamController:
         except Exception as exception:
             dialog = Gtk.Dialog(
                 "Error while testing connection",
-                None,
+                self.__window,
                 0,
                 (Gtk.STOCK_OK, Gtk.ResponseType.OK)
             )
             dialog.get_content_area().add(Gtk.Label(str(exception)))
-        dialog.show_all()
-        dialog.run()
-        dialog.destroy()
+
+        if type(dialog) == Gtk.Dialog:
+            dialog.show_all()
+            dialog.run()
+            dialog.destroy()

@@ -13,6 +13,8 @@
       <column type="gboolean"/>
       <!-- column-name team_name -->
       <column type="gchararray"/>
+      <!-- column-name password -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkWindow" id="windowMain">
@@ -35,6 +37,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="border_width">3</property>
                 <property name="use_stock">True</property>
                 <property name="always_show_image">True</property>
                 <signal name="clicked" handler="onTeamAddButtonClicked" swapped="no"/>
@@ -104,10 +107,12 @@
               </object>
             </child>
             <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumnMainTeamsActions">
-                <property name="title" translatable="yes">Actions</property>
+              <object class="GtkTreeViewColumn" id="treeviewcolumnMainTeamsConnectOnStartup">
+                <property name="title" translatable="yes">Connect on startup</property>
                 <child>
-                  <object class="GtkCellRendererToggle" id="cellrenderertoggleMainTeamsActions"/>
+                  <object class="GtkCellRendererToggle" id="cellrenderertoggleMainTeamsConnectOnStartup">
+                    <signal name="toggled" handler="onConnectTeamOnStartupToggled" swapped="no"/>
+                  </object>
                   <attributes>
                     <attribute name="active">2</attribute>
                   </attributes>

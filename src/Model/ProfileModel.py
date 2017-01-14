@@ -20,6 +20,31 @@ class ProfileModel:
     def getShowOnStartup(self):
         return self.__showOnStartup
 
+    def setConnectTeamOnStartup(self, url, teamName, username, isShowOnStartup=True):
+        newTeams = []
+        for team in self.__teams:
+            if (
+                str(team['url']) == str(url) or
+                str(team['team']) == str(teamName) or
+                str(team['username']) == str(username)
+            ):
+                team['open-on-startup'] = isShowOnStartup
+            newTeams.append(team)
+
+        self.__save()
+
+    def getConnectTeamOnStartup(self, url, teamName, username):
+        connectOnStartup = False
+        for team in self.__teams:
+            if (
+                str(team['url']) != str(url) or
+                str(team['team']) != str(teamName) or
+                str(team['username']) != str(username)
+            ):
+                connectOnStartup = team['open-on-startup']
+                break
+        return connectOnStartup
+
     def addTeam(self, url, team, username, password, openOnStartUp=False):
         self.__teams.append({
             'url': url,
@@ -39,7 +64,6 @@ class ProfileModel:
                 str(team['username']) != str(username)
             ):
                 newTeams.append(team)
-                break
         self.__teams = newTeams
         self.__save()
 
