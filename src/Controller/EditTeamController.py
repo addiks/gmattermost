@@ -33,7 +33,7 @@ class EditTeamController:
         passwordInput = self.__gladeBuilder.get_object('entryEditTeamPassword')
         passwordInput.set_text(password)
 
-    def run(self):
+    def show(self):
         self.__window.show_all()
 
     def onSubmitButtonClicked(self, button, data=None):

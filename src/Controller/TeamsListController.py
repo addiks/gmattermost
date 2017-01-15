@@ -1,5 +1,6 @@
 
 from .EditTeamController import EditTeamController
+from .TeamController import TeamController
 
 class TeamsListController:
     __application = None  # Application
@@ -27,7 +28,7 @@ class TeamsListController:
 
     def onTeamAddButtonClicked(self, button, data=None):
         login = EditTeamController(self.__application, self.onAddTeamSubmitted)
-        login.run()
+        login.show()
 
     def onAddTeamSubmitted(self, url, team, username, password):
         # ProfileModel
@@ -38,7 +39,31 @@ class TeamsListController:
         self.__rebuildTeamsList()
 
     def onTeamConnectItemActivate(self, menuItem, data=None):
-        pass
+        # Gtk.TreeSelection
+        teamsSelection = self.__gladeBuilder.get_object('treeviewSelectionMainTeams')
+
+        # Gtk.TreeModel
+        treeModel, selectedTreePaths = teamsSelection.get_selected_rows()
+
+        for treePath in selectedTreePaths:
+            # Gtk.TreeRowReference
+
+            # Gtk.TreeIter
+            treeIter = treeModel.get_iter(treePath)
+
+            url = treeModel.get_value(treeIter, 0)
+            username = treeModel.get_value(treeIter, 1)
+            teamName = treeModel.get_value(treeIter, 3)
+            password = treeModel.get_value(treeIter, 4)
+
+            teamController = TeamController(
+                self.__application,
+                url,
+                username,
+                password,
+                teamName
+            )
+            teamController.show()
 
     def onTeamEditItemActivate(self, menuItem, data=None):
         # Gtk.TreeSelection
@@ -128,7 +153,7 @@ class TeamsListController:
         teamsListstore.set_value(treeIter, 2, doesConnectOnStartup)
         profile.setConnectTeamOnStartup(url, teamName, username, doesConnectOnStartup)
 
-    def run(self):
+    def show(self):
         self.__window.show_all()
 
     def __rebuildTeamsList(self):

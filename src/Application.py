@@ -8,12 +8,15 @@ from os.path import dirname
 import os
 
 from .Controller.TeamsListController import TeamsListController
+from .Controller.IndicatorController import IndicatorController
 from .Model.ProfileModel import ProfileModel
 from .Model.MattermostServerModel import MattermostServerModel
 
 class Application(Gtk.Application):
+    __profileModel = None # ProfileModel
+    __teamsController = None # TeamsListController
+    __indicatorController = None # IndicatorController
     __assetPath = None
-    __profileModel = None
     __servers = {}
 
     def __init__(self):
@@ -27,16 +30,21 @@ class Application(Gtk.Application):
         assetPath = dirname(dirname(__file__)) + "/assets/"
 
         profilePath = os.path.expanduser("~/.local/share/gmattermost/profile.xml")
+        profileModel = ProfileModel(profilePath)
 
-        self.__profileModel = ProfileModel(profilePath)
+        self.__profileModel = profileModel
         self.__assetPath = assetPath
+        self.__teamsController = TeamsListController(self)
+        self.__indicatorController = IndicatorController(self)
 
     def onActivate(self, app):
         profile = self.__profileModel
 
         if profile.getShowOnStartup() or True:
-            controller = TeamsListController(self)
-            controller.run()
+            self.showTeamsListWindow()
+
+    def showTeamsListWindow(self):
+        self.__teamsController.show()
 
     def getAssetPath(self):
         return self.__assetPath
