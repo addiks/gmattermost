@@ -15,7 +15,6 @@ class TeamsListController:
         self.__gladeBuilder.connect_signals(self)
 
         self.__window = self.__gladeBuilder.get_object('windowMain')
-        application.add_window(self.__window)
 
         self.__rebuildTeamsList()
 

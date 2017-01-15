@@ -1,8 +1,4 @@
 
-import gi
-
-gi.require_version('Gtk', '3.0')
-
 from gi.repository import Gio, Gtk
 from os.path import dirname
 import os
@@ -14,7 +10,6 @@ from .Model.MattermostServerModel import MattermostServerModel
 
 class Application(Gtk.Application):
     __profileModel = None # ProfileModel
-    __teamsController = None # TeamsListController
     __indicatorController = None # IndicatorController
     __assetPath = None
     __servers = {}
@@ -34,8 +29,12 @@ class Application(Gtk.Application):
 
         self.__profileModel = profileModel
         self.__assetPath = assetPath
-        self.__teamsController = TeamsListController(self)
         self.__indicatorController = IndicatorController(self)
+
+        self.hold()
+
+    def shutdown(self):
+        self.release()
 
     def onActivate(self, app):
         profile = self.__profileModel
@@ -44,7 +43,8 @@ class Application(Gtk.Application):
             self.showTeamsListWindow()
 
     def showTeamsListWindow(self):
-        self.__teamsController.show()
+        teamsController = TeamsListController(self)
+        teamsController.show()
 
     def getAssetPath(self):
         return self.__assetPath
