@@ -122,9 +122,6 @@ class MattermostServerModel:
     def createTeam(self):
         headers, result = self.__callServer("POST", "/teams/create")
 
-    def listTeams(self): # TODO: resolve this alias
-        return self.getAllTeams()
-
     def getAllTeams(self):
         headers, teams = self.__callServer("GET", "/teams/all")
         return teams

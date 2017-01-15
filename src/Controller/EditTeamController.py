@@ -179,7 +179,7 @@ class EditTeamController:
         try:
             server.login(username, password)
 
-            teams = server.listTeams()
+            teams = server.getAllTeams()
 
             foundTeam = False
             for teamId in teams:
