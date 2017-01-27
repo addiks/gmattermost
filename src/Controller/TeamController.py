@@ -7,7 +7,9 @@ class TeamController:
 
     def __init__(self, application, url, username, password, teamName):
         self.__application = application
+
         self.__gladeBuilder = application.createGladeBuilder('team')
+        self.__gladeBuilder.connect_signals(self)
 
         self.__window = gladeBuilder.get_object('windowTeam')
 
@@ -15,5 +17,19 @@ class TeamController:
         self.__serverModel.login(username, password)
         self.__serverModel.selectTeam(teamName)
 
+        self.__reload()
+
+
     def show(self):
         self.__window.show_all()
+
+    def __reload(self):
+        # MattermostServerModel
+        serverModel = self.__serverModel
+
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        team = serverModel.getTeam()
+
+        channels = serverModel.getChannels()
