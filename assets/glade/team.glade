@@ -3,6 +3,14 @@
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <!-- interface-css-provider-path style.css -->
+  <object class="GtkListStore" id="liststoreTeamChannels">
+    <columns>
+      <!-- column-name channel_name -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreTeamDirectMessages"/>
+  <object class="GtkListStore" id="liststoreTeamPrivateGroups"/>
   <object class="GtkMenu" id="menuTeamMenu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -254,6 +262,7 @@
               <object class="GtkTreeView" id="treeviewTeamChannels">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="model">liststoreTeamChannels</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="treeviewSelectionTeamChannels"/>
                 </child>
@@ -265,6 +274,12 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="treeviewcolumnTeamChannelsChannel">
                     <property name="title" translatable="yes">Channel</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertextTeamChannelsChannel"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -330,6 +345,7 @@
               <object class="GtkTreeView" id="treeviewTeamPrivateGroups">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="model">liststoreTeamPrivateGroups</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="treeviewTeamSelectionPrivateGroups"/>
                 </child>
@@ -367,6 +383,7 @@
               <object class="GtkTreeView" id="treeviewTeamDirectMessages">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="model">liststoreTeamDirectMessages</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="treeviewTeamSelectionDirectMessages"/>
                 </child>

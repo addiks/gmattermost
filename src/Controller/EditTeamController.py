@@ -94,9 +94,9 @@ class EditTeamController:
             urlCheckLabel.set_text('URL must be like "protocol://hostname/path/"')
             return
 
-        server = self.__application.getServerModel(url)
+        serverModel = self.__application.getServerModel(url)
 
-        if not server.isReachable():
+        if not serverModel.isReachable():
             urlCheckLabel.set_text('This URL does not respond!')
             return
 
@@ -155,7 +155,7 @@ class EditTeamController:
             urlCheckLabel.set_text('URL must be like "protocol://hostname/path/"')
             return
 
-        server = self.__application.getServerModel(url)
+        serverModel = self.__application.getServerModel(url)
 
         # Gtk.Entry
         usernameInput = gladeBuilder.get_object('entryEditTeamUsername')
@@ -172,14 +172,16 @@ class EditTeamController:
 
         teamName = teamInput.get_text()
 
-        server = self.__application.getServerModel(url)
+        serverModel = self.__application.getServerModel(url)
 
         checkConnectionLabel = gladeBuilder.get_object('labelEditTeamCheckConnection')
 
         try:
-            server.login(username, password)
+            # MattermostServerLoggedInModel
+            loggedInModel = serverModel.login(username, password)
 
-            teams = server.getAllTeams()
+            # MattermostTeamModel[]
+            teams = loggedInModel.getAllTeams()
 
             foundTeam = False
             for teamId in teams:

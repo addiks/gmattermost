@@ -1,11 +1,70 @@
 
+from .MattermostChannelModel import MattermostChannelModel
 
 class MattermostTeamModel:
     __serverModel = None # MattermostServerLoggedInModel
     __teamId = None
+    __createdAt = None
+    __updatedAt = None
+    __deletedAt = None
+    __displayName = None
+    __name = None
+    __email = None
+    __teamType = None       # 'D' = ?; 'O' = ?;
+    __allowedDomains = None
+    __inviteId = None
+    __allowOpenInvite = None
 
-    def __init__(self, serverModel, teamName):
+    @staticmethod
+    def fromJsonTeamObject(serverModel, data):
+        return MattermostTeamModel(
+            serverModel,
+            data['id'],
+            data['create_at'],
+            data['update_at'],
+            data['delete_at'],
+            data['display_name'],
+            data['name'],
+            data['email'],
+            data['type'],
+            data['allowed_domains'],
+            data['invite_id'],
+            data['allow_open_invite']
+        )
+
+    def __init__(
+        self,
+        serverModel,
+        teamId,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        displayName,
+        name,
+        email,
+        teamType,
+        allowedDomains,
+        inviteId,
+        allowOpenInvite
+    ):
         self.__serverModel = serverModel
+        self.__teamId = teamId
+        self.__createdAt = createdAt
+        self.__updatedAt = updatedAt
+        self.__deletedAt = deletedAt
+        self.__displayName = displayName
+        self.__name = name
+        self.__email = email
+        self.__teamType = teamType
+        self.__allowedDomains = allowedDomains
+        self.__inviteId = inviteId
+        self.__allowOpenInvite = allowOpenInvite
+
+    def getId(self):
+        return self.__teamId
+
+    def getName(self):
+        return self.__name
 
     def autocompleteUsersInTeam(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -31,9 +90,10 @@ class MattermostTeamModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/members/ids")
 
-    def getTeam(self):
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("GET", "/me")
+#   Not needed (?)
+#    def getTeam(self):
+#        raise Exception("*UNIMPLEMENTED*")
+#        headers, result = self.callServer("GET", "/me")
 
     def updateTeam(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -64,8 +124,14 @@ class MattermostTeamModel:
         headers, result = self.callServer("POST", "/channels/%s/delete" % channelId)
 
     def getChannels(self):
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("GET", "/channels")
+        headers, result = self.callServer("GET", "/channels/")
+        print(result)
+        channelModels = []
+
+        for channelData in result:
+            channelModels.append(MattermostChannelModel.fromJsonTeamObject(self, channelData))
+
+        return channelModels
 
     def getMoreChannels(self):
         raise Exception("*UNIMPLEMENTED*")

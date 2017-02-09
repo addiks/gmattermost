@@ -3,9 +3,90 @@
 class MattermostChannelModel:
     __teamModel = None # MattermostTeamModel
     __channelId = None
+    __createdAt = None
+    __updatedAt = None
+    __deletedAt = None
+    __channelType = None
+    __displayName = None
+    __name = None
+    __headerText = None
+    __purpose = None
+    __lastPostAt = None
+    __totalMessageCount = None
+    __extraUpdatedAt = None
+    __creatorId = None
 
-    def __init__(self, teamModel, teamName):
+    @staticmethod
+    def fromJsonTeamObject(teamModel, data):
+
+        if data['team_id'] != teamModel.getId():
+            pass # TODO: raise Exception
+
+        print(repr(data))
+
+        return MattermostChannelModel(
+            teamModel,
+            data['id'],
+            data['create_at'],
+            data['update_at'],
+            data['delete_at'],
+            data['type'],
+            data['display_name'],
+            data['name'],
+            data['header'],
+            data['purpose'],
+            data['last_post_at'],
+            data['total_msg_count'],
+            data['extra_update_at'],
+            data['creator_id']
+        )
+
+    def __init__(
+        self,
+        teamModel,
+        channelId,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        channelType,
+        displayName,
+        name,
+        headerText,
+        purpose,
+        lastPostAt,
+        totalMessageCount,
+        extraUpdatedAt,
+        creatorId
+    ):
         self.__teamModel = teamModel
+        self.__channelId = channelId
+        self.__createdAt = createdAt
+        self.__updatedAt = updatedAt
+        self.__deletedAt = deletedAt
+        self.__channelType = channelType
+        self.__displayName = displayName
+        self.__name = name
+        self.__headerText = headerText
+        self.__purpose = purpose
+        self.__lastPostAt = lastPostAt
+        self.__totalMessageCount = totalMessageCount
+        self.__extraUpdatedAt = extraUpdatedAt
+        self.__creatorId = creatorId
+
+    def getId(self):
+        return self.__channelId
+
+    def getName(self):
+        return self.__name
+
+    def getDisplayName(self):
+        return self.__displayName
+
+    def isOpen(self):
+        return self.__channelType == 'O'
+
+    def isInviteOnly(self):
+        return self.__channelType == 'I'
 
     def createPost(self):
         raise Exception("*UNIMPLEMENTED*")

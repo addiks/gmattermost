@@ -4,6 +4,7 @@ import json
 
 from .MattermostFileModel import MattermostFileModel
 from .MattermostTeamModel import MattermostTeamModel
+from .MattermostServerLoggedInModel import MattermostServerLoggedInModel
 
 # https://api.mattermost.com/
 

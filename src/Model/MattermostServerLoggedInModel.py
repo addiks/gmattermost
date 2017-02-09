@@ -1,4 +1,6 @@
 
+from .MattermostTeamModel import MattermostTeamModel
+
 class MattermostServerLoggedInModel:
     __serverModel = None # MattermostServerModel
     __username = None
@@ -9,7 +11,7 @@ class MattermostServerLoggedInModel:
         if not serverModel.isReachable():
             raise Exception("Mattermost-Server %s is not reachable!" % serverModel.getUrl())
 
-        responseHeaders, content = self.__serverModel.callServer("POST", "/api/v3/users/login", {
+        responseHeaders, content = serverModel.callServer("POST", "/users/login", {
             'login_id': username,
             'password': password
         })
@@ -20,6 +22,7 @@ class MattermostServerLoggedInModel:
             else:
                 raise Exception("Cannot login on this server!")
 
+        self.__serverModel = serverModel
         self.__token = responseHeaders['token']
         self.__username = username
         self.__password = password
@@ -102,24 +105,32 @@ class MattermostServerLoggedInModel:
 
     def getAllTeams(self):
         headers, teams = self.callServer("GET", "/teams/all")
-
         teamModels = []
-        for something in teams:
-            teamModels.append(MattermostTeamModel(self, teamName)) # TODO
-        return teams
+        for teamId in teams:
+            teamData = teams[teamId]
+            teamModel = MattermostTeamModel.fromJsonTeamObject(self, teamData)
+            teamModels.append(teamModel)
+        return teamModels
 
     def teamExists(self, teamName):
         foundTeam = False
-        for team in self.getAllTeams():
-            if team['display_name'] == teamName:
+        teams = self.getAllTeams()
+        for teamCandidate in teams:
+            if teamCandidate.getName() == teamName:
                 foundTeam = True
                 break
         return foundTeam
 
     def getTeam(self, teamName):
-        if not self.teamExists(teamName):
+        team = None
+        teams = self.getAllTeams()
+        for teamCandidate in teams:
+            if teamCandidate.getName() == teamName:
+                team = teamCandidate
+                break
+        if team == None:
             raise Exception("Team %s does not exist or is not accessable for this user!" % teamName)
-        return MattermostTeamModel(self, teamName)
+        return team
 
     def callServer(self, method, route, data=None, headers={}):
         headers['Authorization'] = "Bearer " + self.__token
