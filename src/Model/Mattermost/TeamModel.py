@@ -1,8 +1,8 @@
 
-from .MattermostChannelModel import MattermostChannelModel
+from .ChannelModel import ChannelModel
 
-class MattermostTeamModel:
-    __serverModel = None # MattermostServerLoggedInModel
+class TeamModel:
+    __serverModel = None # ServerLoggedInModel
     __teamId = None
     __createdAt = None
     __updatedAt = None
@@ -17,7 +17,7 @@ class MattermostTeamModel:
 
     @staticmethod
     def fromJsonTeamObject(serverModel, data):
-        return MattermostTeamModel(
+        return TeamModel(
             serverModel,
             data['id'],
             data['create_at'],
@@ -59,6 +59,9 @@ class MattermostTeamModel:
         self.__allowedDomains = allowedDomains
         self.__inviteId = inviteId
         self.__allowOpenInvite = allowOpenInvite
+
+    def getServer(self):
+        return self.__serverModel
 
     def getId(self):
         return self.__teamId
@@ -125,12 +128,9 @@ class MattermostTeamModel:
 
     def getChannels(self):
         headers, result = self.callServer("GET", "/channels/")
-        print(result)
         channelModels = []
-
         for channelData in result:
-            channelModels.append(MattermostChannelModel.fromJsonTeamObject(self, channelData))
-
+            channelModels.append(ChannelModel.fromJsonChannelObject(self, channelData))
         return channelModels
 
     def getMoreChannels(self):
@@ -141,7 +141,7 @@ class MattermostTeamModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/channels/members")
 
-    def getChannel(self, channelId): # return MattermostChannelModel
+    def getChannel(self, channelId): # return ChannelModel
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/channels/%s" % channelId)
 

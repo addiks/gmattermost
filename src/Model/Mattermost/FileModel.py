@@ -1,6 +1,6 @@
 
 
-class MattermostFileModel:
+class FileModel:
     __fileId = None
     __serverModel = None
 

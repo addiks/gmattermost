@@ -2,13 +2,13 @@
 import httplib2
 import json
 
-from .MattermostFileModel import MattermostFileModel
-from .MattermostTeamModel import MattermostTeamModel
-from .MattermostServerLoggedInModel import MattermostServerLoggedInModel
+from .FileModel import FileModel
+from .TeamModel import TeamModel
+from .ServerLoggedInModel import ServerLoggedInModel
 
 # https://api.mattermost.com/
 
-class MattermostServerModel:
+class ServerModel:
     __http = None
     __url = None
     __isReachable = None
@@ -55,7 +55,7 @@ class MattermostServerModel:
             loggedInModel = self.__loggedInModels[username]
 
         else:
-            loggedInModel = MattermostServerLoggedInModel(self, username, password)
+            loggedInModel = ServerLoggedInModel(self, username, password)
             self.__loggedInModels[username] = loggedInModel
 
         return loggedInModel

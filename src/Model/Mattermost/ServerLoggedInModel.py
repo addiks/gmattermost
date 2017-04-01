@@ -1,8 +1,9 @@
 
-from .MattermostTeamModel import MattermostTeamModel
+from .TeamModel import TeamModel
+from .UserModel import UserModel
 
-class MattermostServerLoggedInModel:
-    __serverModel = None # MattermostServerModel
+class ServerLoggedInModel:
+    __serverModel = None # ServerModel
     __username = None
     __password = None
     __token = None
@@ -32,8 +33,8 @@ class MattermostServerLoggedInModel:
         headers, result = self.callServer("POST", "/users/create")
 
     def getUser(self):
-        raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/users/me")
+        return UserModel.fromJsonUserObject(result)
 
     def logout(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -47,9 +48,21 @@ class MattermostServerLoggedInModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/users/search")
 
-    def getUsersByIds(self):
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("POST", "/users/ids")
+    def getUsersByIds(self, userIds):
+        headers, result = self.callServer("POST", "/users/ids", userIds)
+        print(result)
+        users = []
+        for userId in result:
+            userJsonData = result[userId]
+            users.append(UserModel.fromJsonUserObject(userJsonData))
+        return users
+
+    def getUserById(self, userId):
+        user = None
+        users = self.getUsersByIds([userId])
+        if len(users) > 0:
+            user = users[0]
+        return user
 
     def updateUser(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -79,7 +92,7 @@ class MattermostServerLoggedInModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/files/%s/get" % fileId)
 
-        return MattermostFileModel(self, fileSomething) # TODO
+        return FileModel(self, fileSomething) # TODO
 
     def savePreferences(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -101,14 +114,14 @@ class MattermostServerLoggedInModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/teams/create")
 
-        return MattermostTeamModel(self, teamName) # TODO
+        return TeamModel(self, teamName) # TODO
 
     def getAllTeams(self):
         headers, teams = self.callServer("GET", "/teams/all")
         teamModels = []
         for teamId in teams:
             teamData = teams[teamId]
-            teamModel = MattermostTeamModel.fromJsonTeamObject(self, teamData)
+            teamModel = TeamModel.fromJsonTeamObject(self, teamData)
             teamModels.append(teamModel)
         return teamModels
 

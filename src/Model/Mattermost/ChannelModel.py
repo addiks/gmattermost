@@ -1,7 +1,7 @@
 
 
-class MattermostChannelModel:
-    __teamModel = None # MattermostTeamModel
+class ChannelModel:
+    __teamModel = None # TeamModel
     __channelId = None
     __createdAt = None
     __updatedAt = None
@@ -17,14 +17,12 @@ class MattermostChannelModel:
     __creatorId = None
 
     @staticmethod
-    def fromJsonTeamObject(teamModel, data):
+    def fromJsonChannelObject(teamModel, data):
 
         if data['team_id'] != teamModel.getId():
             pass # TODO: raise Exception
 
-        print(repr(data))
-
-        return MattermostChannelModel(
+        return ChannelModel(
             teamModel,
             data['id'],
             data['create_at'],
@@ -87,6 +85,39 @@ class MattermostChannelModel:
 
     def isInviteOnly(self):
         return self.__channelType == 'I'
+
+    def isDirectMessage(self):
+        return self.__channelType == 'D'
+
+    def isPrivateGroup(self):
+        return self.__channelType == 'P'
+
+    def getDirectMessageRemoteUser(self):
+        remoteUserId = None
+
+        # TeamModel
+        teamModel = self.__teamModel
+
+        userIdA, userIdB = self.__name.split('__')
+
+        # ServerLoggedInModel
+        server = teamModel.getServer()
+
+        # UserModel
+        myUser = server.getUser()
+
+        myUserId = myUser.getId()
+
+        if userIdA == myUserId:
+            remoteUserId = userIdB
+
+        else:
+            remoteUserId = userIdA
+
+        # UserModel
+        remoteUser = server.getUserById(remoteUserId)
+
+        return remoteUser
 
     def createPost(self):
         raise Exception("*UNIMPLEMENTED*")

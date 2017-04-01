@@ -6,7 +6,7 @@ import os
 from .Controller.TeamsListController import TeamsListController
 from .Controller.IndicatorController import IndicatorController
 from .Model.ProfileModel import ProfileModel
-from .Model.MattermostServerModel import MattermostServerModel
+from .Model.Mattermost.ServerModel import ServerModel
 
 class Application(Gtk.Application):
     __profileModel = None # ProfileModel
@@ -54,7 +54,7 @@ class Application(Gtk.Application):
 
     def getServerModel(self, url):
         if url not in self.__servers:
-            self.__servers[url] = MattermostServerModel(url)
+            self.__servers[url] = ServerModel(url)
         return self.__servers[url]
 
     def createGladeBuilder(self, name):
