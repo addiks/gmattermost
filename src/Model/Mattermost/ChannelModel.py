@@ -92,7 +92,7 @@ class ChannelModel:
     def isPrivateGroup(self):
         return self.__channelType == 'P'
 
-    def getDirectMessageRemoteUser(self):
+    def getDirectMessageRemoteUserId(self):
         remoteUserId = None
 
         # TeamModel
@@ -113,6 +113,11 @@ class ChannelModel:
 
         else:
             remoteUserId = userIdA
+
+        return remoteUserId
+
+    def getDirectMessageRemoteUser(self):
+        remoteUserId = self.getDirectMessageRemoteUserId()
 
         # UserModel
         remoteUser = server.getUserById(remoteUserId)

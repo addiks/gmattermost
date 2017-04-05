@@ -153,11 +153,32 @@ class TeamsListController:
         profile.setConnectTeamOnStartup(url, teamName, username, doesConnectOnStartup)
 
     def show(self):
-        self.__window.show_all()
+        # ProfileModel
+        profile = self.__application.getProfileModel()
+
+        if profile.getShowOnStartup():
+            self.__window.show_all()
+
+        for team in profile.getTeams():
+            if team['open-on-startup']:
+                teamController = TeamController(
+                    self.__application,
+                    team['url'],
+                    team['username'],
+                    team['password'],
+                    team['team']
+                )
+                teamController.show()
+
 
     def __rebuildTeamsList(self):
         # ProfileModel
         profile = self.__application.getProfileModel()
+
+        # Gtk.CheckButton
+        showOnStartCheckbox = self.__gladeBuilder.get_object('checkbuttonMainHeaderShowOnStartup')
+
+        showOnStartCheckbox.set_active(profile.getShowOnStartup())
 
         # Gtk.ListStore
         teamsListstore = self.__gladeBuilder.get_object('liststoreMainTeams')
@@ -167,6 +188,8 @@ class TeamsListController:
         for team in profile.getTeams():
             # Gtk.TreeIter
             treeIter = teamsListstore.append()
+
+            print(team)
 
             teamsListstore.set_value(treeIter, 0, team['url'])
             teamsListstore.set_value(treeIter, 1, team['username'])

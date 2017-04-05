@@ -1,14 +1,27 @@
 swagger: '2.0'
 info:
   description: |
+
     The Mattermost Web Services API is used by Mattermost clients and third party applications to interact with the server. [JavaScript and Golang drivers, along with a Golang bot sample](https://api.mattermost.com/#tag/drivers) connecting to the APIs are also available.
 
-    This is the API reference for version 3.5.1 of the Mattermost server. To see the API reference for the [master branch](https://github.com/mattermost/platform) and the next upcoming version of Mattermost see the [master API reference](https://api.mattermost.com/master.html).
+    This is the API reference for the [master branch](https://github.com/mattermost/platform) of the Mattermost server and will be the basis for the next version of Mattermost. For the most recent release of Mattermost see the [API reference here](https://api.mattermost.com).
+
+    ### Versions
+
+    **In the coming months, Mattermost will be moving to API version 4. [The reference for the new API version can be found here](https://api.mattermost.com/v4/). API version 3 will be supported for at least six months after the full release of API version 4.**
+
+    This is the API reference for version 3.7.0 of the Mattermost server. To see the API reference for other versions, click on a link below.
+
+    * [Mattermost Server 3.6.3](https://api.mattermost.com/v3.6/)
+    * [Mattermost Server 3.5.1](https://api.mattermost.com/v3.5/)
+    * [master branch](https://api.mattermost.com/master/)
 
     ### Changelog
 
     The [Mattermost server changelog](https://docs.mattermost.com/administration/changelog.html) documents API changes since Mattermost server v3.2:
 
+    * [Changes to Mattermost Server 3.7 API from 3.6 API](https://docs.mattermost.com/administration/changelog.html#api-changes-from-v3-6-to-v3-7)
+    * [Changes to Mattermost Server 3.6 API from 3.5 API](https://docs.mattermost.com/administration/changelog.html#api-changes-from-v3-5-to-v3-6)
     * [Changes to Mattermost Server 3.5 API from 3.4 API](https://docs.mattermost.com/administration/changelog.html#api-changes-from-v3-4-to-v3-5)
     * [Changes to Mattermost Server 3.4 API from 3.3 API](https://docs.mattermost.com/administration/changelog.html#api-changes-from-v3-3-to-v3-4)
     * [Changes to Mattermost Server 3.3 API from 3.2 API](https://docs.mattermost.com/administration/changelog.html#api-changes-from-v3-2-to-v3-3)
@@ -29,7 +42,7 @@ info:
 
     The source code for this API reference is hosted at https://github.com/mattermost/mattermost-api-reference.
 
-  version: 3.5.1
+  version: 3.7.0
   title: Mattermost API Reference
   termsOfService: 'https://about.mattermost.com/default-terms/'
   contact:
@@ -45,28 +58,28 @@ tags:
   - name: drivers
     description: |
       The easiest way to interact with the Mattermost Web Service API is through a language specific driver. These can be found at the following links:
-      
+
       * [Mattermost JavaScript Driver](https://github.com/mattermost/mattermost-driver-javascript)
       * [Mattermost Golang Driver](https://github.com/mattermost/platform/blob/master/model/client.go)
-      
+
       For an example usage of the Golang driver, please see the [Golang Bot Sample](https://github.com/mattermost/mattermost-bot-sample-golang).
-    
+
   - name: authentication
     description: |
       The majority of the Mattermost API involves interacting with teams. Therefore, most API methods require authentication as a user. There are two ways to authenticate into a Mattermost system.
-      
+
       All examples assume there is a Mattermost instance running at http://localhost:8065.
-      
+
       #### Session Token
-      
+
       Make an HTTP POST to `your-mattermost-url.com/api/v3/users/login` with a JSON body indicating the name of the team, the user’s `login_id`, `password` and optionally the MFA `token`. The `login_id` can be an email, username or an AD/LDAP ID depending on the system's configuration.
-      
+
       ```
       curl -i -d '{"login_id":"someone@nowhere.com","password":"thisisabadpassword"}' http://localhost:8065/api/v3/users/login
       ```
-      
+
       If successful, the response will contain a `Token` header and a user object in the body.
-      
+
       ```
       HTTP/1.1 200 OK
       Set-Cookie: MMSID=hyr5dmb1mbb49c44qmx4whniso; Path=/; Max-Age=2592000; HttpOnly
@@ -82,21 +95,21 @@ tags:
 
       {{user object as json}}
       ```
-      
-      Include the `Token` as part of the `Authentication` header on your future API requests with the `Bearer` method.
-      
+
+      Include the `Token` as part of the `Authorization` header on your future API requests with the `Bearer` method.
+
       ```
       curl -i -H 'Authorization: Bearer hyr5dmb1mbb49c44qmx4whniso' http://localhost:8065/api/v3/users/me
       ```
-      
+
       You should now be able to access the API as the user you logged in as.
-      
+
       #### OAuth 2.0
-      
+
       Mattermost has the ability to act as an [OAuth 2.0](https://tools.ietf.org/html/rfc6749) service provider.
-      
+
       For an example on how to register an OAuth 2.0 app with your Mattermost instance, please see the [Mattermost-Zapier integration documentation](https://docs.mattermost.com/integrations/zapier.html#register-zapier-as-an-oauth-2-0-application).
-      
+
       Additional documentation on using Mattermost as an OAuth 2.0 service provider will be added here in the future.
   - name: errors
     description: |
@@ -142,7 +155,7 @@ tags:
     description: |
       In addition to the HTTP RESTful web service, Mattermost also offers a WebSocket event delivery system and some API functionality.
 
-      To connect to the WebSocket follow the standard opening handshake as [defined by the RFC specification](https://tools.ietf.org/html/rfc6455#section-1.3) to the `/api/v3/websocket` endpoint of Mattermost.
+      To connect to the WebSocket follow the standard opening handshake as [defined by the RFC specification](https://tools.ietf.org/html/rfc6455#section-1.3) to the `/api/v3/users/websocket` endpoint of Mattermost.
 
       #### Authentication
 
@@ -179,9 +192,9 @@ tags:
 
       ```
       {
-        "event": "channel_viewed",
+        "event": "hello",
         "data": {
-          "channel_id": "ihze299c4j87ped4wannrjdt9c"
+          "server_version": "3.6.0.1451.1c38da627ebb4e3635677db6939e9195"
         },
         "broadcast":{
           "omit_users": null,
@@ -199,8 +212,8 @@ tags:
       - posted
       - post_edited
       - post_deleted
+      - channel_created
       - channel_deleted
-      - channel_viewed
       - direct_added
       - new_user
       - leave_team
@@ -261,8 +274,7 @@ tags:
       - get_statuses
       - get_statuses_by_ids
 
-      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/platform/blob/release-3.5/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-driver-javascript/blob/master/websocket_client.jsx).
-
+      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/platform/blob/master/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-driver-javascript/blob/master/websocket_client.jsx).
 
   - name: users
     description: Anything related to the user data model.
@@ -273,12 +285,13 @@ tags:
   - name: posts
     description: Anything related to posts, the main messaging model in Mattermost.
   - name: files
-    description: |
-      These APIs will change significantly in Mattermost 3.5. This documentation reflects the version that will exist in Mattermost 3.5.
-
-      Anything related to files uploaded by Mattermost users.
+    description: Anything related to files uploaded by Mattermost users.
+  - name: admin
+    description: Anything related to system administration.
   - name: preferences
     description: Anything related to the current user's preferences which are used to store various settings in Mattermost.
+  - name: webhooks
+    description: Anything related to the webhook system.
 schemes:
   - http
   - https
@@ -407,7 +420,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Users retreived successfully
+          description: Users retrieved successfully
           schema:
             type: object
             additionalProperties:
@@ -461,21 +474,62 @@ paths:
             properties:
               term:
                 type: string
+                description: The search term can be the username, nickname, full name or email of the user you're looking for. In some server configurations full name and email search may be blocked by the System Administrator.
               team_id:
                 type: string
+                description: Provide a team ID if you'd like to restrict search to a single team.
               in_channel_id:
-                 type: string
+                type: string
+                description: Provide an in channel ID if you'd like to only search for users who are in a channel.
               not_in_channel_id:
                 type: string
+                description: Provide a not in channel ID if you'd like to only search for users who are not in a channel.
               allow_inactive:
                 type: boolean
+                description: Set this to `true` if you would like to include inactive users in your search.
       responses:
         '200':
-          description: Profiles retreived successfully
+          description: Profiles retrieved successfully
           schema:
             type: object
             additionalProperties:
               $ref: "#/definitions/User"
+
+  '/users/name/{username}':
+    get:
+      tags:
+        - users
+      summary: Get sanitized user object by username
+      description: Gets the sanitized User object with the given username.
+      parameters:
+        - name: username
+          in: path
+          description: The username for a specific user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: User object retrieval successful
+          schema:
+            $ref: '#/definitions/User'
+
+  '/users/email/{email}':
+    get:
+      tags:
+        - users
+      summary: Get sanitized user object by email
+      description: Gets the sanitized User object with the given email.
+      parameters:
+        - name: email
+          in: path
+          description: The email for a specific user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: User object retrieval successful
+          schema:
+            $ref: '#/definitions/User'
 
   '/users/ids':
     post:
@@ -494,14 +548,14 @@ paths:
               type: string
       responses:
         '200':
-          description: Profiles retreived successfully
+          description: Profiles retrieved successfully
           schema:
             type: object
             additionalProperties:
               $ref: "#/definitions/User"
 
   '/teams/{team_id}/channels/{channel_id}/users/{offset}/{limit}':
-    post:
+    get:
       tags:
         - users
       summary: Get users in a channel
@@ -529,7 +583,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Profiles retreived successfully
+          description: Profiles retrieved successfully
           schema:
             type: object
             additionalProperties:
@@ -564,7 +618,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Profiles retreived successfully
+          description: Profiles retrieved successfully
           schema:
             type: object
             additionalProperties:
@@ -643,7 +697,7 @@ paths:
                 type: string
                 description: ID of the user to set active/inactive
               active:
-                type: boolean
+                type: string
                 description: Use `true` to set the user active, `false` for inactive
       responses:
         '200':
@@ -735,6 +789,61 @@ paths:
             application/json:
               email: someone@example.com
 
+  /users/reset_password:
+    post:
+      tags:
+        - users
+      summary: Reset user password
+      description: Resets the user's password.
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - code
+              - new_password
+            properties:
+              code:
+                type: string
+                description: The code provided from the send password reset email.
+              new_password:
+                type: string
+                description: User's new password.
+      responses:
+        '200':
+          description: Password reset successfully.
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '500':
+          description: Password reset errors.
+          examples:
+            api.user.reset_password.invalid_link.app_error:
+              description: The reset password link does not appear to be valid
+            api.user.reset_password.link_expired.app_error:
+              description: The password reset link has expired
+
+  '/users/autocomplete':
+    get:
+      tags:
+        - users
+      summary: Autocomplete users
+      description: Get a list of users on the system by matching the provided search term against username, full name and nickname.
+      parameters:
+        - name: term
+          in: query
+          description: The term to match against username, full name or nickname
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Autocomplete users retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/User"
+
   '/teams/{team_id}/users/autocomplete':
     get:
       tags:
@@ -754,7 +863,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Autocomplete users retreived successfully
+          description: Autocomplete users retrieved successfully
           schema:
             type: object
             additionalProperties:
@@ -784,7 +893,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Autocomplete users retreived successfully
+          description: Autocomplete users retrieved successfully
           schema:
             type: object
             additionalProperties:
@@ -830,9 +939,43 @@ paths:
       description: Gets all teams which the current user can has access to. If the user is a System Admin, this will be all teams on the server. Otherwise, it will only be the teams of which the user is a member.
       responses:
         '200':
-          description: Teams Found
+          description: Teams found
           schema:
             $ref: '#/definitions/TeamMap'
+
+  /teams/members:
+    get:
+      tags:
+        - teams
+      summary: Get all the teams the user is a member of
+      description: Get all the teams the user is member a of
+      responses:
+        '200':
+          description: Teams found
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TeamMember'
+
+  /teams/unread:
+      get:
+        tags:
+          - teams
+        summary: Get the count for unread messages and mentions in the teams the user is a member of
+        description: Get the count for unread messages and mentions in the teams the user is a member of
+        parameters:
+          - name: id
+            in: query
+            description: Optional team id to be excluded from the results
+            required: true
+            type: string
+        responses:
+          '200':
+            description: Teams found
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/TeamUnread'
 
   '/teams/{team_id}/members/{offset}/{limit}':
     get:
@@ -858,7 +1001,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Members retreived successfully
+          description: Members retrieved successfully
           schema:
             type: array
             items:
@@ -883,7 +1026,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Member retreived successfully
+          description: Member retrieved successfully
           schema:
             $ref: "#/definitions/TeamMember"
 
@@ -892,7 +1035,7 @@ paths:
       tags:
         - teams
       summary: Get team members by IDs
-      description: Get a map of team member objects for the specified team and user IDs.
+      description: Get an array of team member objects for the specified team and user IDs.
       parameters:
         - name: team_id
           in: path
@@ -909,9 +1052,11 @@ paths:
               type: string
       responses:
         '200':
-          description: Members retreived successfully
+          description: Members retrieved successfully
           schema:
-            type: object
+            type: array
+            items:
+              $ref: "#/definitions/TeamMember"
             additionalProperties:
               $ref: "#/definitions/TeamMember"
 
@@ -924,6 +1069,23 @@ paths:
         - name: team_id
           in: path
           description: Team ID of the team you want to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Team object
+          schema:
+            $ref: "#/definitions/Team"
+
+  '/teams/name/{team_name}':
+    get:
+      tags:
+        - teams
+      summary: Get a team object
+      parameters:
+        - name: team_name
+          in: path
+          description: Team name of the team you want to retrieve
           required: true
           type: string
       responses:
@@ -1025,6 +1187,23 @@ paths:
         '200':
           description: User removed sucessfully
 
+  '/teams/{team_id}/commands/list_team_commands':
+    get:
+      tags:
+        - teams
+      summary: Get all slash commands for this team
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID of the team you want commands for
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array with the commands
+          schema:
+            $ref: "#/definitions/Command"
+
   '/teams/{team_id}/channels/create':
     post:
       tags:
@@ -1100,31 +1279,39 @@ paths:
         '403':
           description: User does not belong to the team
 
-  '/teams/{team_id}/channels/{channel_id}/delete':
+  '/teams/{team_id}/channels/view':
     post:
       tags:
         - channels
-      summary: Delete a channel
-      description: Delete a channel from a team.
+      summary: View a channel
+      description: Perform all the actions involved in viewing a channel. This includes marking channels as read, clearing push notifications, and updating the active channel.
       parameters:
-        - name: team_id
-          in: path
-          description: Team ID the channel belongs to
+        - in: path
+          name: team_id
+          description: Team ID of the channel to update
           required: true
           type: string
-        - name: channel_id
-          in: path
-          description: The channel ID
+        - in: body
+          name: body
+          description: Paremeters affecting how and which channels to view.
           required: true
-          type: string
-      responses:
-        '200':
-          description: The channel ID
           schema:
             type: object
+            required:
+              - channel_id
             properties:
-              id:
+              channel_id:
                 type: string
+                description: The channel ID that is being viewed. Use a blank string to indicate that all channels have lost focus.
+              prev_channel_id:
+                type: string
+                description: The channel ID of the previous channel, used when switching channels. Providing this ID will cause push notifications to clear on the channel being switched to.
+
+      responses:
+        '200':
+          description: Channel viewed successfully.
+          schema:
+            $ref: '#/definitions/StatusOK'
 
   '/teams/{team_id}/channels/':
       get:
@@ -1150,18 +1337,78 @@ paths:
           '500':
             description: Could not retrieve the user channels
 
+  '/teams/{team_id}/channels/name/{channel_name}':
+      get:
+        tags:
+          - channels
+        summary: Get channel by name
+        description: Get a single channel by team ID and channel name.
+        parameters:
+          - name: team_id
+            in: path
+            description: Team ID of the channels to return
+            required: true
+            type: string
+          - name: channel_name
+            in: path
+            description: The channel name
+            required: true
+            type: string
+        responses:
+          '200':
+            description: The channel
+            schema:
+              $ref: '#/definitions/Channel'
+          '500':
+            description: Channel does not exist.
+
   '/teams/{team_id}/channels/more':
     get:
       tags:
         - channels
+      deprecated: true
       summary: Get channels the user has not joined
-      description: Get a list of open channels the user does not belong to by team ID.
+      description: Scheduled for deprecation in Mattermost 3.7, please use `/teams/{team_id}/channels/more/{offset}/{limit}` instead. Get a list of open channels the user does not belong to by team ID.
       parameters:
         - name: team_id
           in: path
           description: Team ID of the channels to return
           required: true
           type: string
+      responses:
+        '200':
+          description: The list of channels
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Channel'
+        '403':
+          description: User does not belong to the team
+        '500':
+          description: Could not retrieve the user channels
+
+  '/teams/{team_id}/channels/more/{offset}/{limit}':
+    get:
+      tags:
+        - channels
+      summary: Get a page of channels the user has not joined
+      description: Get a page of open channels the user does not belong to by team ID.
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID of the channels to return
+          required: true
+          type: string
+        - name: offset
+          in: path
+          description: The offset to start the page at, use 0 for the first page
+          required: true
+          type: integer
+        - name: limit
+          in: path
+          description: The limit of channels to return per page
+          required: true
+          type: integer
       responses:
         '200':
           description: The list of channels
@@ -1197,6 +1444,26 @@ paths:
           description: User does not belong to the team
         '500':
           description: Could not retrieve the channel members
+
+  '/teams/{team_id}/channels/pinned':
+    get:
+      tags:
+        - channels
+      summary: Get a channel's pinned posts
+      description: Get a list of pinned posts for channel.
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID to get the pinned posts for
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The list of channel pinned posts
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PostList'
 
   '/teams/{team_id}/channels/{channel_id}':
     get:
@@ -1247,6 +1514,32 @@ paths:
             $ref: '#/definitions/ChannelStats'
         '500':
           description: Could not retrieve the channel stats, the user is not a member of the channel or the channel does not belong to the team
+
+  '/teams/{team_id}/channels/{channel_id}/delete':
+    post:
+      tags:
+        - channels
+      summary: Delete a channel
+      description: Delete a channel from a team.
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID the channel belongs to
+          required: true
+          type: string
+        - name: channel_id
+          in: path
+          description: The channel ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The channel ID
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
 
   '/teams/{team_id}/channels/{channel_id}/add':
     post:
@@ -1310,6 +1603,134 @@ paths:
         '500':
           description: Could not retrieve the channel member, the user is not a member of the channel or the channel does not belong to the team
 
+  '/teams/{team_id}/channels/{channel_id}/members/ids':
+      post:
+        tags:
+          - channels
+        summary: Get channel members by IDs
+        description: Get an array of channel member objects for the specified channel and user IDs.
+        parameters:
+          - name: team_id
+            in: path
+            description: Team ID for the corresponding channel
+            required: true
+            type: string
+          - name: channel_id
+            in: path
+            description: The channel ID
+            required: true
+            type: string
+          - in: body
+            name: body
+            description: A list of user IDs
+            required: true
+            schema:
+              type: array
+              items:
+                type: string
+        responses:
+          '200':
+            description: Members retrieved successfully
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/ChannelMember"
+              additionalProperties:
+                $ref: "#/definitions/ChannelMember"
+
+  '/teams/{team_id}/channels/{channel_id}/update_member_roles':
+      post:
+        tags:
+          - channels
+        summary: Update the roles of a channel member
+        description: Update the roles of the provided user in the specified channel.
+        parameters:
+          - name: team_id
+            in: path
+            description: Team ID for the corresponding channel
+            required: true
+            type: string
+          - name: channel_id
+            in: path
+            description: The channel ID for which the member roles are being updated
+            required: true
+            type: string
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              required:
+                - user_id
+                - new_roles
+              properties:
+                user_id:
+                  type: string
+                  description: User ID to apply the new roles to.
+                new_roles:
+                  type: string
+                  description: Roles to set on the user in the provided channel.
+        responses:
+          '200':
+            description: Channel memeber roles updated successfully.
+            schema:
+              $ref: '#/definitions/StatusOK'
+
+  '/teams/{team_id}/channels/autocomplete':
+    get:
+      tags:
+        - channels
+      summary: Autocomplete channels in a team
+      description: Get a list of channels on the specified team by matching the term against name and display name.
+      parameters:
+        - name: team_id
+          in: path
+          description: The team ID the channels are in
+          required: true
+          type: string
+        - name: term
+          in: query
+          description: The term to match against
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Autocomplete channels retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Channel"
+
+  '/teams/{team_id}/channels/more/search':
+    post:
+      tags:
+        - channels
+      summary: Search for more channels
+      description: Get a list of public channel objects the current user is not in, matching some search parameters.
+      parameters:
+        - name: team_id
+          in: path
+          description: The team ID the channels are in
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Search parameter
+          required: true
+          schema:
+            type: object
+            required:
+              - term
+            properties:
+              term:
+                type: string
+      responses:
+        '200':
+          description: Channels retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Channel"
   '/teams/{team_id}/posts/search':
     post:
       tags:
@@ -1366,7 +1787,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Posts retreived successfully
+          description: Posts retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
@@ -1455,7 +1876,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Post retreived successfully
+          description: Post retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
@@ -1478,12 +1899,12 @@ paths:
           type: string
         - name: time
           in: path
-          description: The liast time to query from.
+          description: The last time to query from.
           required: true
           type: string
       responses:
         '200':
-          description: Post retreived successfully
+          description: Post retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
@@ -1510,7 +1931,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Post retreived successfully
+          description: Post retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
@@ -1581,7 +2002,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Posts retreived successfully
+          description: Posts retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
@@ -1619,16 +2040,41 @@ paths:
           type: string
       responses:
         '200':
-          description: Posts retreived successfully
+          description: Posts retrieved successfully
           schema:
             $ref: "#/definitions/PostList"
 
+  '/get_opengraph_metadata':
+    post:
+      tags:
+        - posts
+        - opengraph
+      summary: Get OpenGraph metadata for a URL (website link)
+      parameters:
+        - in: body
+          name: body
+          description: URL to retreive OG metadata of
+          required: true
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                description: URL to retreive OG metadata of.
+      responses:
+        '200':
+          description: OpenGraph metadata was successfully retireved.
+          schema:
+            $ref: '#/definitions/OpenGraph'
   '/teams/{team_id}/files/upload':
     post:
       tags:
         - files
       summary: Upload a file
       description: Uploads a file that can later be attached to a post.
+      consumes: ["multipart/form-data"]
       parameters:
         - name: team_id
           in: path
@@ -1798,6 +2244,272 @@ paths:
         '501':
           description: Public links are disabled or file storage is disabled
 
+  '/admin/logs':
+    get:
+      tags:
+        - admin
+      summary: Get server logs
+      description: Gets the server logs
+      responses:
+        '200':
+          description: The list of log entries
+          schema:
+            type: array
+            items:
+              type: string
+        '403':
+          description: User is not a system admin
+
+  '/admin/audits':
+    get:
+      tags:
+        - admin
+      summary: Get audits
+      description: Gets the server audit logs
+      responses:
+        '200':
+          description: The list of audit entries
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Audit'
+        '403':
+          description: User is not a system admin
+
+  '/admin/config':
+    get:
+      tags:
+        - admin
+      summary: Get config
+      description: Gets the server config
+      responses:
+        '200':
+          description: The server config
+          schema:
+            $ref: "#/definitions/Config"
+        '403':
+           description: User is not a system admin
+
+  '/admin/save_config':
+     post:
+       tags:
+         - admin
+       summary: Save config
+       description: Saves the server config
+       parameters:
+         - in: body
+           name: body
+           description: The server config to be saved
+           required: true
+           schema:
+              $ref: '#/definitions/Config'
+       responses:
+         '200':
+           description: The config was saved successfully
+           schema:
+             $ref: '#/definitions/StatusOK'
+         '403':
+           description: User is not a system admin
+
+  '/admin/reload_config':
+    get:
+      tags:
+        - admin
+      summary: Reload config
+      description: Reloads the server config
+      responses:
+        '200':
+          description: The config was reloaded successfully
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '403':
+           description: User is not a system admin
+
+  '/admin/invalidate_all_caches':
+    get:
+      tags:
+        - admin
+      summary: Invalidates all caches
+      description: Invalidates all user caches
+      responses:
+        '200':
+          description: All caches were invalidated successfully
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '403':
+          description: User is not a system admin
+
+  '/admin/test_email':
+    post:
+      tags:
+        - admin
+      summary: Send a test email
+      description: Sends a test email using the provided config
+      parameters:
+        - in: body
+          name: body
+          description: The config to be used to send a test email
+          required: true
+          schema:
+            $ref: '#/definitions/Config'
+      responses:
+        '200':
+          description: Successfully sent a test email
+          schema:
+            type: string
+            description: Returns SUCCESS = true when the test email was successfully sent
+        '403':
+          description: User is not a system admin
+
+  '/admin/recycle_db_conn':
+    get:
+      tags:
+        - admin
+      summary: Recycle database connection
+      description: Recycles database connection
+      responses:
+        '200':
+          description: Database connection was recycled successfully
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '403':
+          description: User is not a system admin
+
+  '/admin/analytics/{name}':
+    get:
+      tags:
+        - admin
+      summary: Get analytics
+      description: Gets server analytics
+      parameters:
+        - in: path
+          name: name
+          description: The type of analytics to receive
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array of analytics
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                Name:
+                  type: string
+                value:
+                  type: integer
+        '403':
+          description: User is not a system admin
+
+  '/admin/analytics/{team_id}/{name}':
+    get:
+      tags:
+        - admin
+      summary: Get analytics by team
+      description: Gets analytics about a specified team
+      parameters:
+        - in: path
+          name: team_id
+          description: The team id to get analytics for
+          required: true
+          type: string
+        - in: path
+          name: name
+          description: The type of analytics to receive
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array of analytics about the specified team
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                Name:
+                  type: string
+                value:
+                  type: integer
+        '403':
+          description: User is not a system admin
+
+  '/admin/reset_mfa':
+    post:
+      tags:
+        - admin
+      summary: Reset MFA status
+      description: Resets user's MFA status
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - user_id
+            properties:
+              user_id:
+                type: string
+                description: The user ID to reset MFA status for
+      responses:
+        '200':
+          description: User's MFA status was reset successfully
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '403':
+          description: User is not a system admin
+
+  '/admin/reset_password':
+    post:
+      tags:
+        - admin
+      summary: Reset password
+      description: Resets a user's password
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - user_id
+              - new_password
+            properties:
+              user_id:
+                type: string
+                description: The user ID to reset password for
+              new_password:
+                type: string
+                description: The user's new password
+      responses:
+        '200':
+          description: User's password was reset successfully
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '403':
+          description: User is not a system admin
+
+  '/admin/recently_active_users/{team_id}':
+    get:
+      tags:
+        - admin
+      summary: Get recently active users
+      description: Gets the recently active users, organized into a map using user ID as the key
+      parameters:
+        - in: path
+          name: team_id
+          description: The team ID to get the recently active users for
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Users retrieved successfully
+          schema:
+            type: object
+            additionalProperties:
+              $ref: "#/definitions/User"
+
   /preferences/save:
     post:
       tags:
@@ -1902,7 +2614,7 @@ paths:
   '/teams/{team_id}/hooks/incoming/list':
     get:
       tags:
-        - incoming webhooks
+        - webhooks
       summary: List incoming webhooks for a team
       parameters:
         - name: team_id
@@ -1921,7 +2633,7 @@ paths:
   '/teams/{team_id}/hooks/incoming/create':
     post:
       tags:
-        - incoming webhooks
+        - webhooks
       summary: Create an incoming webhook to a team
       parameters:
         - name: team_id
@@ -1956,7 +2668,7 @@ paths:
   '/teams/{team_id}/hooks/incoming/delete':
     post:
       tags:
-        - incoming webhooks
+        - webhooks
       summary: Delete an incoming webhook
       parameters:
         - name: team_id
@@ -1988,6 +2700,170 @@ paths:
                 type: string
                 description: The incoming webhook ID
 
+  '/teams/{team_id}/hooks/outgoing/list':
+    get:
+      tags:
+        - webhooks
+      summary: List outgoing webhooks for a team
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID of outgoing webhooks to return
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The list of outgoing webhooks
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/OutgoingWebhook"
+
+  '/teams/{team_id}/hooks/outgoing/delete':
+    post:
+      tags:
+        - webhooks
+      summary: Delete an outgoing webhook
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID the outgoing webhook belongs to
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: The outgoing webhook ID
+          required: true
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                description: The ID of the outgoing webhook to delete
+      responses:
+        '200':
+          description: Outgoing webhook deleted successfully
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                description: The outgoing webhook ID
+  '/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions':
+    get:
+      tags:
+        - posts
+      summary: Lists the reactions to a post
+      description: Returns a list of reactions made by all users to a given post.
+      parameters:
+        - name: team_id
+          in: path
+          description: The team ID
+          required: true
+          type: string
+        - name: channel_id
+          in: path
+          description: The channel ID which must exist on the given team
+          required: true
+          type: string
+        - name: post_id
+          in: path
+          description: The post ID which must exist in the given channel
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of all reactions made to the given post
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Reaction"
+        '400':
+          description: An invalid team, channel, or post ID has been provided, the reaction has its post_id field set to another post, or the provided post_id is not in the provided channel
+        '401':
+          description: User is not logged in
+  '/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions/save':
+    post:
+      tags:
+        - posts
+      summary: React to a post
+      description: Saves a reaction made by the current user to the given post.
+      parameters:
+        - name: team_id
+          in: path
+          description: The team ID
+          required: true
+          type: string
+        - name: channel_id
+          in: path
+          description: The channel ID which must exist on the given team
+          required: true
+          type: string
+        - name: post_id
+          in: path
+          description: The post ID which must exist in the given channel
+          required: true
+          type: string
+        - in: body
+          name: reaction
+          description: The user's reaction with its post_id, user_id, and emoji_name fields set
+          required: true
+          schema:
+            $ref: '#/definitions/Reaction'
+      responses:
+        '200':
+          description: The reaction was saved to the server or already existed
+          schema:
+            $ref: '#/definitions/Reaction'
+        '400':
+          description: An invalid team, channel, or post ID has been provided, the reaction has its post_id field set to another post, or the provided post_id is not in the provided channel
+        '401':
+          description: User is not logged in
+        '403':
+          description: The reaction has its user_id field set for another user
+  '/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions/delete':
+    post:
+      tags:
+        - posts
+      summary: Remove a reaction from a post
+      description: Deletes a reaction made by the current user from the given post.
+      parameters:
+        - name: team_id
+          in: path
+          description: The team ID
+          required: true
+          type: string
+        - name: channel_id
+          in: path
+          description: The channel ID which must exist on the given team
+          required: true
+          type: string
+        - name: post_id
+          in: path
+          description: The post ID which must exist in the given channel
+          required: true
+          type: string
+        - in: body
+          name: reaction
+          description: The user's reaction with its post_id, user_id, and emoji_name fields set
+          required: true
+          schema:
+            $ref: '#/definitions/Reaction'
+      responses:
+        '200':
+          description: The reaction was deleted from the server or never existed
+          schema:
+            $ref: '#/definitions/StatusOK'
+        '400':
+          description: An invalid team, channel, or post ID has been provided, the reaction has its post_id field set to another post, or the provided post_id is not in the provided channel
+        '401':
+          description: User is not logged in
+        '403':
+          description: The reaction has its user_id field set for another user
 definitions:
   User:
     type: object
@@ -2051,6 +2927,8 @@ definitions:
       display_name:
         type: string
       name:
+        type: string
+      description:
         type: string
       email:
         type: string
@@ -2136,7 +3014,7 @@ definitions:
   ChannelData:
     type: object
     properties:
-      channel: 
+      channel:
         $ref: '#/definitions/Channel'
       member:
         $ref: '#/definitions/ChannelMember'
@@ -2176,6 +3054,8 @@ definitions:
           type: string
       pending_post_id:
         type: string
+      is_pinned:
+        type: number
 
   PostList:
     type: object
@@ -2206,6 +3086,16 @@ definitions:
         type: string
       roles:
         type: string
+
+  TeamUnread:
+    type: object
+    properties:
+      team_id:
+        type: string
+      msg_count:
+        type: integer
+      mention_count:
+        type: integer
 
   FileInfo:
     type: object
@@ -2304,6 +3194,770 @@ definitions:
       display_name:
         description: The display name for this incoming webhook
         type: string
+
+  OutgoingWebhook:
+    type: object
+    properties:
+      id:
+        description: The unique identifier for this outgoing webhook
+        type: string
+      token:
+        type: string
+      create_at:
+        type: integer
+      update_at:
+        type: integer
+      delete_at:
+        type: integer
+      creator_id:
+        type: string
+      channel_id:
+        type: string
+      team_id:
+        type: string
+      trigger_words:
+        type: array
+        items:
+          type: string
+      trigger_when:
+        type: integer
+      callback_urls:
+        type: array
+        items:
+          type: string
+      description:
+        description: The description for this outgoing webhook
+        type: string
+      display_name:
+        description: The display name for this outgoing webhook
+        type: string
+      content_type:
+        type: string
+
+  Reaction:
+    type: object
+    properties:
+      user_id:
+        description: The ID of the user that made this reaction
+        type: string
+      post_id:
+        description: The ID of the post to which this reaction was made
+        type: string
+      emoji_name:
+        description: The name of the emoji that was used for this reaction
+        type: string
+      create_at:
+        description: The time at which this reaction was made
+        type: integer
+
+  Command:
+    type: object
+    properties:
+      id:
+        description: The ID of the slash command
+        type: string
+      token:
+        description: The token which is used to verify the source of the payload
+        type: string
+      create_at:
+        description: Timestamp when the command was created
+        type: integer
+      updated_at:
+        description: Timestamp when the command was last updated
+        type: integer
+      deleted_at:
+        description: Timestamp when the command was deleted, 0 if never deleted
+        type: integer
+      creator_id:
+        description: The user id for the commands creator
+        type: string
+      team_id:
+        description: The team id for which this command is configured
+        type: string
+      trigger:
+        description: The string that triggers this command
+        type: string
+      method:
+        description: Is the trigger done with HTTP Get ('G') or HTTP Post ('P')
+        type: string
+      username:
+        description: What is the username for the response post
+        type: string
+      icon_url:
+        description: The url to find the icon for this users avatar
+        type: string
+      auto_complete:
+        description: Use auto complete for this command
+        type: boolean
+      auto_complete_desc:
+        description: The description for this command shown when selecting the command
+        type: string
+      auto_complete_hint:
+        description: The hint for this command
+        type: string
+      display_name:
+        description: Display name for the command
+        type: string
+      description:
+        description: Description for this command
+        type: string
+      url:
+        description: The URL that is triggered
+        type: string
+
+  StatusOK:
+    type: object
+    properties:
+      status:
+        description: Will contain "ok" if the request was successful and there was nothing else to return
+        type: string
+
+  OpenGraph:
+    type: object
+    description: OpenGraph metadata of a webpage
+    properties:
+      type:
+        type: string
+      url:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      determiner:
+        type: string
+      site_name:
+        type: string
+      locale:
+        type: string
+      locales_alternate:
+        type: array
+        items:
+          type: string
+      images:
+        type: array
+        items:
+          type: object
+          description: Image object used in OpenGraph metadata of a webpage
+          properties:
+            url:
+              type: string
+            secure_url:
+              type: string
+            type:
+              type: string
+            width:
+              type: integer
+            height:
+              type: integer
+      videos:
+        type: array
+        items:
+          type: object
+          description: Video object used in OpenGraph metadata of a webpage
+          properties:
+            url:
+              type: string
+            secure_url:
+              type: string
+            type:
+              type: string
+            width:
+              type: integer
+            height:
+              type: integer
+
+      audios:
+        type: array
+        items:
+          type: object
+          description: Audio object used in OpenGraph metadata of a webpage
+          properties:
+            url:
+              type: string
+            secure_url:
+              type: string
+            type:
+              type: string
+      article:
+        type: object
+        description: Article object used in OpenGraph metadata of a webpage, if type is article
+        properties:
+          published_time:
+            type: string
+          modified_time:
+            type: string
+          expiration_time:
+            type: string
+          section:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+          authors:
+            type: array
+            items:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                username:
+                  type: string
+                gender:
+                  type: string
+      book:
+        type: object
+        description: Book object used in OpenGraph metadata of a webpage, if type is book
+        properties:
+          isbn:
+            type: string
+          release_date:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+          authors:
+            type: array
+            items:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                username:
+                  type: string
+                gender:
+                  type: string
+      profile:
+        type: object
+        properties:
+          first_name:
+            type: string
+          last_name:
+            type: string
+          username:
+            type: string
+          gender:
+            type: string
+
+  Audit:
+    type: object
+    properties:
+      id:
+        type: string
+      create_at:
+        type: integer
+      user_id:
+        type: string
+      action:
+        type: string
+      extra_info:
+        type: string
+      ip_address:
+        type: string
+      session_id:
+        type: string
+
+  Config:
+    type: object
+    properties:
+      ServiceSettings:
+        type: object
+        properties:
+          SiteURL:
+            type: string
+          ListenAddress:
+            type: string
+          ConnectionSecurity:
+            type: string
+          TLSCertFile:
+            type: string
+          TLSKeyFile:
+            type: string
+          UseLetsEncrypt:
+            type: boolean
+          LetsEncryptCertificateCacheFile:
+            type: string
+          Forward80To443:
+            type: boolean
+          ReadTimeout:
+            type: integer
+          WriteTimeout:
+            type: integer
+          MaximumLoginAttempts:
+            type: integer
+          SegmentDeveloperKey:
+            type: string
+          GoogleDeveloperKey:
+            type: string
+          EnableOAuthServiceProvider:
+            type: boolean
+          EnableIncomingWebhooks:
+            type: boolean
+          EnableOutgoingWebhooks:
+            type: boolean
+          EnableCommands:
+            type: boolean
+          EnableOnlyAdminIntegrations:
+            type: boolean
+          EnablePostUsernameOverride:
+            type: boolean
+          EnablePostIconOverride:
+            type: boolean
+          EnableTesting:
+            type: boolean
+          EnableDeveloper:
+            type: boolean
+          EnableSecurityFixAlert:
+            type: boolean
+          EnableInsecureOutgoingConnections:
+            type: boolean
+          EnableMultifactorAuthentication:
+            type: boolean
+          EnforceMultifactorAuthentication:
+            type: boolean
+          AllowCorsFrom:
+            type: string
+          SessionLengthWebInDays:
+            type: integer
+          SessionLengthMobileInDays:
+            type: integer
+          SessionLengthSSOInDays:
+            type: integer
+          SessionCacheInMinutes:
+            type: integer
+          WebsocketSecurePort:
+            type: integer
+          WebsocketPort:
+            type: integer
+          WebserverMode:
+            type: string
+          EnableCustomEmoji:
+            type: boolean
+          RestrictCustomEmojiCreation:
+            type: string
+      TeamSettings:
+        type: object
+        properties:
+          SiteName:
+            type: string
+          MaxUsersPerTeam:
+            type: integer
+          EnableTeamCreation:
+            type: boolean
+          EnableUserCreation:
+            type: boolean
+          EnableOpenServer:
+            type: boolean
+          RestrictCreationToDomains:
+            type: string
+          EnableCustomBrand:
+            type: boolean
+          CustomBrandText:
+            type: string
+          CustomDescriptionText:
+            type: string
+          RestrictDirectMessage:
+            type: string
+          RestrictTeamInvite:
+            type: string
+          RestrictPublicChannelManagement:
+            type: string
+          RestrictPrivateChannelManagement:
+            type: string
+          RestrictPublicChannelCreation:
+            type: string
+          RestrictPrivateChannelCreation:
+            type: string
+          RestrictPublicChannelDeletion:
+            type: string
+          RestrictPrivateChannelDeletion:
+            type: string
+          UserStatusAwayTimeout:
+            type: integer
+          MaxChannelsPerTeam:
+            type: integer
+          MaxNotificationsPerChannel:
+            type: integer
+      SqlSettings:
+        type: object
+        properties:
+          DriverName:
+            type: string
+          DataSource:
+            type: string
+          DataSourceReplicas:
+            type: array
+            items:
+              type: string
+          MaxIdleConns:
+            type: integer
+          MaxOpenConns:
+            type: integer
+          Trace:
+            type: boolean
+          AtRestEncryptKey:
+            type: string
+      LogSettings:
+        type: object
+        properties:
+          EnableConsole:
+            type: boolean
+          ConsoleLevel:
+            type: string
+          EnableFile:
+            type: boolean
+          FileLevel:
+            type: string
+          FileFormat:
+            type: string
+          FileLocation:
+            type: string
+          EnableWebhookDebugging:
+            type: boolean
+          EnableDiagnostics:
+            type: boolean
+      PasswordSettings:
+        type: object
+        properties:
+          MinimumLength:
+            type: integer
+          Lowercase:
+            type: boolean
+          Number:
+            type: boolean
+          Uppercase:
+            type: boolean
+          Symbol:
+            type: boolean
+      FileSettings:
+        type: object
+        properties:
+          MaxFileSize:
+            type: integer
+          DriverName:
+            type: string
+          Directory:
+            type: string
+          EnablePublicLink:
+            type: boolean
+          PublicLinkSalt:
+            type: string
+          ThumbnailWidth:
+            type: integer
+          ThumbnailHeight:
+            type: integer
+          PreviewWidth:
+            type: integer
+          PreviewHeight:
+            type: integer
+          ProfileWidth:
+            type: integer
+          ProfileHeight:
+            type: integer
+          InitialFont:
+            type: string
+          AmazonS3AccessKeyId:
+            type: string
+          AmazonS3SecretAccessKey:
+            type: string
+          AmazonS3Bucket:
+            type: string
+          AmazonS3Region:
+            type: string
+          AmazonS3Endpoint:
+            type: string
+          AmazonS3SSL:
+            type: boolean
+      EmailSettings:
+        type: object
+        properties:
+          EnableSignUpWithEmail:
+            type: boolean
+          EnableSignInWithEmail:
+            type: boolean
+          EnableSignInWithUsername:
+            type: boolean
+          SendEmailNotifications:
+            type: boolean
+          RequireEmailVerification:
+            type: boolean
+          FeedbackName:
+            type: string
+          FeedbackEmail:
+            type: string
+          FeedbackOrganization:
+            type: string
+          SMTPUsername:
+            type: string
+          SMTPPassword:
+            type: string
+          SMTPServer:
+            type: string
+          SMTPPort:
+            type: string
+          ConnectionSecurity:
+            type: string
+          InviteSalt:
+            type: string
+          PasswordResetSalt:
+            type: string
+          SendPushNotifications:
+            type: boolean
+          PushNotificationServer:
+            type: string
+          PushNotificationContents:
+            type: string
+          EnableEmailBatching:
+            type: boolean
+          EmailBatchingBufferSize:
+            type: integer
+          EmailBatchingInterval:
+            type: integer
+      RateLimitSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          PerSec:
+            type: integer
+          MaxBurst:
+            type: integer
+          MemoryStoreSize:
+            type: integer
+          VaryByRemoteAddr:
+            type: boolean
+          VaryByHeader:
+            type: string
+      PrivacySettings:
+        type: object
+        properties:
+          ShowEmailAddress:
+            type: boolean
+          ShowFullName:
+            type: boolean
+      SupportSettings:
+        type: object
+        properties:
+          TermsOfServiceLink:
+            type: string
+          PrivacyPolicyLink:
+            type: string
+          AboutLink:
+            type: string
+          HelpLink:
+            type: string
+          ReportAProblemLink:
+            type: string
+          SupportEmail:
+            type: string
+      GitLabSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          Secret:
+            type: string
+          Id:
+            type: string
+          Scope:
+            type: string
+          AuthEndpoint:
+            type: string
+          TokenEndpoint:
+            type: string
+          UserApiEndpoint:
+            type: string
+      GoogleSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          Secret:
+            type: string
+          Id:
+            type: string
+          Scope:
+            type: string
+          AuthEndpoint:
+            type: string
+          TokenEndpoint:
+            type: string
+          UserApiEndpoint:
+            type: string
+      Office365Settings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          Secret:
+            type: string
+          Id:
+            type: string
+          Scope:
+            type: string
+          AuthEndpoint:
+            type: string
+          TokenEndpoint:
+            type: string
+          UserApiEndpoint:
+            type: string
+      LdapSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          LdapServer:
+            type: string
+          LdapPort:
+            type: integer
+          ConnectionSecurity:
+            type: string
+          BaseDN:
+            type: string
+          BindUsername:
+            type: string
+          BindPassword:
+            type: string
+          UserFilter:
+            type: string
+          FirstNameAttribute:
+            type: string
+          LastNameAttribute:
+            type: string
+          EmailAttribute:
+            type: string
+          UsernameAttribute:
+            type: string
+          NicknameAttribute:
+            type: string
+          IdAttribute:
+            type: string
+          PositionAttribute:
+            type: string
+          SyncIntervalMinutes:
+            type: integer
+          SkipCertificateVerification:
+            type: boolean
+          QueryTimeout:
+            type: integer
+          MaxPageSize:
+            type: integer
+          LoginFieldName:
+            type: string
+      ComplianceSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          Directory:
+            type: string
+          EnableDaily:
+            type: boolean
+      LocalizationSettings:
+        type: object
+        properties:
+          DefaultServerLocale:
+            type: string
+          DefaultClientLocale:
+            type: string
+          AvailableLocales:
+            type: string
+      SamlSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          Verify:
+            type: boolean
+          Encrypt:
+            type: boolean
+          IdpUrl:
+            type: string
+          IdpDescriptorUrl:
+            type: string
+          AssertionConsumerServiceURL:
+            type: string
+          IdpCertificateFile:
+            type: string
+          PublicCertificateFile:
+            type: string
+          PrivateKeyFile:
+            type: string
+          FirstNameAttribute:
+            type: string
+          LastNameAttribute:
+            type: string
+          EmailAttribute:
+            type: string
+          UsernameAttribute:
+            type: string
+          NicknameAttribute:
+            type: string
+          LocaleAttribute:
+            type: string
+          PositionAttribute:
+            type: string
+          LoginButtonText:
+            type: string
+      NativeAppSettings:
+        type: object
+        properties:
+          AppDownloadLink:
+            type: string
+          AndroidAppDownloadLink:
+            type: string
+          IosAppDownloadLink:
+            type: string
+      ClusterSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          InterNodeListenAddress:
+            type: string
+          InterNodeUrls:
+            type: array
+            items:
+              type: string
+      MetricsSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          BlockProfileRate:
+            type: integer
+          ListenAddress:
+            type: string
+      AnalyticsSettings:
+        type: object
+        properties:
+          MaxUsersForStatistics:
+            type: integer
+      WebrtcSettings:
+        type: object
+        properties:
+          Enable:
+            type: boolean
+          GatewayWebsocketUrl:
+            type: string
+          GatewayAdminUrl:
+            type: string
+          GatewayAdminSecret:
+            type: string
+          StunURI:
+            type: string
+          TurnURI:
+            type: string
+          TurnUsername:
+            type: string
+          TurnSharedKey:
+            type: string
 
 externalDocs:
   description: Find out more about Mattermost

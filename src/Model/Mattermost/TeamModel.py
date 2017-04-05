@@ -129,8 +129,8 @@ class TeamModel:
     def getChannels(self):
         headers, result = self.callServer("GET", "/channels/")
         channelModels = []
-        for channelData in result:
-            channelModels.append(ChannelModel.fromJsonChannelObject(self, channelData))
+        for channelJsonData in result:
+            channelModels.append(ChannelModel.fromJsonChannelObject(self, channelJsonData))
         return channelModels
 
     def getMoreChannels(self):
@@ -142,8 +142,15 @@ class TeamModel:
         headers, result = self.callServer("GET", "/channels/members")
 
     def getChannel(self, channelId): # return ChannelModel
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("GET", "/channels/%s" % channelId)
+        headers, result = self.callServer("GET", "/channels/%s/" % channelId)
+
+        print(repr(result))
+
+        channelJsonData = result['channel']
+
+        channel = ChannelModel.fromJsonChannelObject(self, channelJsonData)
+
+        return channel
 
     def searchPosts(self):
         raise Exception("*UNIMPLEMENTED*")

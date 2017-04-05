@@ -114,7 +114,7 @@ class ProfileModel:
             teamXml.set('name', team['team'])
             teamXml.set('username', team['username'])
             teamXml.set('password', team['password'])
-            teamXml.set('open-on-startup', str(team['open-on-startup']))
+            teamXml.set('open-on-startup', str(team['open-on-startup']).lower())
 
         xml = ElementTree.ElementTree(profileXml)
         xml.write(xmlFilePath)

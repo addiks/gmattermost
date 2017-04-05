@@ -50,7 +50,6 @@ class ServerLoggedInModel:
 
     def getUsersByIds(self, userIds):
         headers, result = self.callServer("POST", "/users/ids", userIds)
-        print(result)
         users = []
         for userId in result:
             userJsonData = result[userId]
