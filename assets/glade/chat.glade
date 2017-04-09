@@ -102,6 +102,7 @@
     <property name="title" translatable="yes">gMattermost - Chat with %NAME%</property>
     <property name="default_width">600</property>
     <property name="default_height">400</property>
+    <signal name="destroy" handler="onWindowDestroyed" swapped="no"/>
     <child>
       <object class="GtkBox" id="boxChat">
         <property name="visible">True</property>

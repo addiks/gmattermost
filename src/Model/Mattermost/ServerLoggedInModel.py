@@ -1,9 +1,11 @@
 
 from .TeamModel import TeamModel
 from .UserModel import UserModel
+import traceback
 
 class ServerLoggedInModel:
     __serverModel = None # ServerModel
+    __selfUser = None    # UserModel
     __username = None
     __password = None
     __token = None
@@ -33,8 +35,10 @@ class ServerLoggedInModel:
         headers, result = self.callServer("POST", "/users/create")
 
     def getSelfUser(self):
-        headers, result = self.callServer("GET", "/users/me")
-        return UserModel.fromJsonUserObject(result, self)
+        if self.__selfUser == None:
+            headers, result = self.callServer("GET", "/users/me")
+            self.__selfUser = UserModel.fromJsonUserObject(result, self)
+        return self.__selfUser
 
     def logout(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -88,6 +92,7 @@ class ServerLoggedInModel:
         headers, result = self.callServer("POST", "/users/send_password_reset")
 
     def getUserImage(self, userId, lastPictureUpdate):
+        cachePath = ""
         url = "/users/%s/image?time=%d" % (userId, lastPictureUpdate)
         headers, imageData = self.callServer("GET", url, returnPlainResponse=True)
         return imageData

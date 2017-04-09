@@ -1,7 +1,7 @@
 
 import os
 
-from gi.repository import Gtk, GdkPixbuf, Gio
+from gi.repository import Gtk, GdkPixbuf
 from .ChatController import ChatController
 
 class TeamController:
@@ -90,6 +90,7 @@ class TeamController:
             avatarImageData = selfUser.getImage()
             self.__application.putCache(cacheId, avatarImageData)
 
+        # GdkPixbuf.Pixbuf
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
             avatarImagePath,
             width=48,
@@ -98,9 +99,6 @@ class TeamController:
         )
 
         imageTeamAvatar.set_from_pixbuf(pixbuf)
-
-#        avatarUrl = teamModel.getAvatarIconUrl()
-#        imageTeamAvatar.set_from_file(avatarUrl)
 
         variables = {
             'USERNAME': selfUser.getUseName(),
