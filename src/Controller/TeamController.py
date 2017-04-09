@@ -1,4 +1,7 @@
 
+import os
+
+from gi.repository import Gtk, GdkPixbuf, Gio
 from .ChatController import ChatController
 
 class TeamController:
@@ -74,9 +77,34 @@ class TeamController:
         # Gtk.ListStore
         liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
 
+        # Gtk.Image
+        imageTeamAvatar = gladeBuilder.get_object('imageTeamAvatar')
+
+        # UserModel
+        selfUser = self.__loggedInModel.getSelfUser()
+
+        cacheId = "avatar." + selfUser.getId() + ".png"
+        avatarImagePath = self.__application.getCacheFilePath(cacheId)
+
+        if not os.path.exists(avatarImagePath):
+            avatarImageData = selfUser.getImage()
+            self.__application.putCache(cacheId, avatarImageData)
+
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            avatarImagePath,
+            width=48,
+            height=48,
+            preserve_aspect_ratio=False
+        )
+
+        imageTeamAvatar.set_from_pixbuf(pixbuf)
+
+#        avatarUrl = teamModel.getAvatarIconUrl()
+#        imageTeamAvatar.set_from_file(avatarUrl)
+
         variables = {
-            'USERNAME': "asd",
-            'TEAMNAME': "qwe"
+            'USERNAME': selfUser.getUseName(),
+            'TEAMNAME': teamModel.getName()
         }
 
         for labelId in ["labelTeamNamesUsername", "labelTeamNamesTeam"]:

@@ -25,7 +25,7 @@ class UserModel:
     __mfaSecret = None          # string
 
     @staticmethod
-    def fromJsonUserObject(data):
+    def fromJsonUserObject(data, serverModel):
         for key in [
             "password",
             "props",
@@ -40,6 +40,7 @@ class UserModel:
             if key not in data:
                 data[key] = None
         return UserModel(
+            serverModel,
             data['id'],
             data['create_at'],
             data['update_at'],
@@ -66,6 +67,7 @@ class UserModel:
 
     def __init__(
         self,
+        serverModel,
         userId,
         createAt,
         updateAt,
@@ -89,6 +91,7 @@ class UserModel:
         mfaActive,
         mfaSecret,
     ):
+        self.__serverModel = serverModel
         self.__userId = userId
         self.__createAt = createAt
         self.__updateAt = updateAt
@@ -117,6 +120,15 @@ class UserModel:
 
     def getFullName(self):
         return self.__firstName + " " + self.__lastName
+
+    def getLastPictureUpdate(self):
+        return self.__lastPictureUpdate
+
+    def getImage(self):
+        # ServerLoggedInModel
+        serverModel = self.__serverModel
+
+        return serverModel.getUserImage(self.__userId, self.__lastPictureUpdate)
 
     def getUseName(self):
         usename = "[unknown]"

@@ -60,11 +60,13 @@ class ServerModel:
 
         return loggedInModel
 
-    def callServer(self, method, route, data=None, headers={}):
+    def callServer(self, method, route, data=None, headers={}, version="v3", returnPlainResponse=False):
         if not self.isReachable():
             raise Exception("Mattermost-Server %s is not reachable!" % self.__url)
 
-        url = self.__url + "/api/v3" + route
+        url = self.__url + "/api/" + version + route
+
+        print(url)
 
         dataJson = None
         if data != None:
@@ -77,9 +79,13 @@ class ServerModel:
             headers=headers
         )
 
-        if type(contentJson) == bytes:
-            contentJson = contentJson.decode()
+        if returnPlainResponse:
+            content = contentJson
 
-        content = json.loads(contentJson)
+        else:
+            if type(contentJson) == bytes:
+                contentJson = contentJson.decode()
+
+            content = json.loads(contentJson)
 
         return responseHeaders, content

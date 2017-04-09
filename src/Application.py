@@ -6,10 +6,12 @@ import os
 from .Controller.TeamsListController import TeamsListController
 from .Controller.IndicatorController import IndicatorController
 from .Model.ProfileModel import ProfileModel
+from .Model.CacheModel import CacheModel
 from .Model.Mattermost.ServerModel import ServerModel
 
 class Application(Gtk.Application):
     __profileModel = None # ProfileModel
+    __cacheModel = None # CacheModel
     __indicatorController = None # IndicatorController
     __assetPath = None
     __servers = {}
@@ -27,6 +29,10 @@ class Application(Gtk.Application):
         profilePath = os.path.expanduser("~/.local/share/gmattermost/profile.xml")
         profileModel = ProfileModel(profilePath)
 
+        cacheDir = os.path.expanduser("~/.local/share/gmattermost/cache/")
+        cacheModel = CacheModel(cacheDir)
+
+        self.__cacheModel = cacheModel
         self.__profileModel = profileModel
         self.__assetPath = assetPath
         self.__indicatorController = IndicatorController(self)
@@ -56,6 +62,18 @@ class Application(Gtk.Application):
         if url not in self.__servers:
             self.__servers[url] = ServerModel(url)
         return self.__servers[url]
+
+    def getCache(self, cacheKey):
+        cacheModel = self.__cacheModel
+        return cacheModel.get(cacheKey)
+
+    def putCache(self, cacheKey, content):
+        cacheModel = self.__cacheModel
+        cacheModel.put(cacheKey, content)
+
+    def getCacheFilePath(self, cacheKey):
+        cacheModel = self.__cacheModel
+        return cacheModel.getCacheFilePath(cacheKey)
 
     def createGladeBuilder(self, name):
         assetPath = self.__assetPath

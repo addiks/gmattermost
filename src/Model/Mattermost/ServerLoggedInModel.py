@@ -32,9 +32,9 @@ class ServerLoggedInModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/users/create")
 
-    def getUser(self):
+    def getSelfUser(self):
         headers, result = self.callServer("GET", "/users/me")
-        return UserModel.fromJsonUserObject(result)
+        return UserModel.fromJsonUserObject(result, self)
 
     def logout(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -53,7 +53,7 @@ class ServerLoggedInModel:
         users = []
         for userId in result:
             userJsonData = result[userId]
-            users.append(UserModel.fromJsonUserObject(userJsonData))
+            users.append(UserModel.fromJsonUserObject(userJsonData, self))
         return users
 
     def getUserById(self, userId):
@@ -86,6 +86,11 @@ class ServerLoggedInModel:
     def sendPasswordResetMail(self):
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/users/send_password_reset")
+
+    def getUserImage(self, userId, lastPictureUpdate):
+        url = "/users/%s/image?time=%d" % (userId, lastPictureUpdate)
+        headers, imageData = self.callServer("GET", url, returnPlainResponse=True)
+        return imageData
 
     def getFile(self, fileId):
         raise Exception("*UNIMPLEMENTED*")
@@ -144,6 +149,6 @@ class ServerLoggedInModel:
             raise Exception("Team %s does not exist or is not accessable for this user!" % teamName)
         return team
 
-    def callServer(self, method, route, data=None, headers={}):
+    def callServer(self, method, route, data=None, headers={}, version="v3", returnPlainResponse=False):
         headers['Authorization'] = "Bearer " + self.__token
-        return self.__serverModel.callServer(method, route, data, headers)
+        return self.__serverModel.callServer(method, route, data, headers, version, returnPlainResponse)

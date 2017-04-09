@@ -14,6 +14,7 @@ class TeamModel:
     __allowedDomains = None
     __inviteId = None
     __allowOpenInvite = None
+    __slashCommands = None
 
     @staticmethod
     def fromJsonTeamObject(serverModel, data):
@@ -175,6 +176,15 @@ class TeamModel:
     def deleteIncomingWebhook(self):
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/hooks/incoming/delete")
+
+    def _getSlashCommands(self):
+        # CAUTION: ADMIN ONLY!
+        # see: $ref: "#/definitions/Command"
+        if self.__slashCommands == None:
+            headers, result = self.callServer("GET", "/commands/list_team_commands")
+            self.__slashCommands = result
+        return self.__slashCommands
+
 
     def callServer(self, method, route, data=None):
         return self.__serverModel.callServer(method, "/teams/%s%s" % (self.__teamId, route), data)

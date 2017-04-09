@@ -189,8 +189,6 @@ class TeamsListController:
             # Gtk.TreeIter
             treeIter = teamsListstore.append()
 
-            print(team)
-
             teamsListstore.set_value(treeIter, 0, team['url'])
             teamsListstore.set_value(treeIter, 1, team['username'])
             teamsListstore.set_value(treeIter, 2, team['open-on-startup'])

@@ -159,9 +159,11 @@
                 <property name="can_focus">False</property>
                 <child>
                   <object class="GtkImage" id="imageTeamAvatar">
+                    <property name="width_request">64</property>
+                    <property name="height_request">64</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="resource">mainAvatar</property>
+                    <property name="stock">gtk-about</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -272,35 +274,28 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindowTeamChannels">
+              <object class="GtkTreeView" id="treeviewTeamChannels">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="model">liststoreTeamChannels</property>
+                <property name="search_column">0</property>
+                <signal name="row-activated" handler="onTeamChannelRowActivated" swapped="no"/>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection4"/>
+                </child>
                 <child>
-                  <object class="GtkTreeView" id="treeviewTeamChannels">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">liststoreTeamChannels</property>
-                    <property name="search_column">0</property>
-                    <signal name="row-activated" handler="onTeamChannelRowActivated" swapped="no"/>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection4"/>
-                    </child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamChannelsStatus">
+                    <property name="title" translatable="yes">Status</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamChannelsChannel">
+                    <property name="title" translatable="yes">Channel</property>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamChannelsStatus">
-                        <property name="title" translatable="yes">Status</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamChannelsChannel">
-                        <property name="title" translatable="yes">Channel</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertextTeamChannelsChannel"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
+                      <object class="GtkCellRendererText" id="cellrenderertextTeamChannelsChannel"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
                     </child>
                   </object>
                 </child>
@@ -314,9 +309,9 @@
             <child>
               <object class="GtkButton" id="buttonTeamChannelsMore">
                 <property name="label" translatable="yes">More ...</property>
-                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="no_show_all">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -364,34 +359,27 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindowTeamPrivateGroups">
+              <object class="GtkTreeView" id="treeviewTeamPrivateGroups">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="model">liststoreTeamPrivateGroups</property>
+                <property name="search_column">0</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection5"/>
+                </child>
                 <child>
-                  <object class="GtkTreeView" id="treeviewTeamPrivateGroups">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">liststoreTeamPrivateGroups</property>
-                    <property name="search_column">0</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection5"/>
-                    </child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamPrivateGroupsStatus">
+                    <property name="title" translatable="yes">Status</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamPrivateGroupsGroup">
+                    <property name="title" translatable="yes">Group</property>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamPrivateGroupsStatus">
-                        <property name="title" translatable="yes">Status</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamPrivateGroupsGroup">
-                        <property name="title" translatable="yes">Group</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertextTeamPrivateGroupsGroup"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
+                      <object class="GtkCellRendererText" id="cellrenderertextTeamPrivateGroupsGroup"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
                     </child>
                   </object>
                 </child>
@@ -416,37 +404,30 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindowTeamDirectMessages">
+              <object class="GtkTreeView" id="treeviewTeamDirectMessages">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="model">liststoreTeamDirectMessages</property>
+                <property name="search_column">0</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection"/>
+                </child>
                 <child>
-                  <object class="GtkTreeView" id="treeviewTeamDirectMessages">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">liststoreTeamDirectMessages</property>
-                    <property name="search_column">0</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection"/>
-                    </child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamDirectMessagesStatus">
+                    <property name="title" translatable="yes">Status</property>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamDirectMessagesStatus">
-                        <property name="title" translatable="yes">Status</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertextTeamDirectMessagesStatus"/>
-                        </child>
-                      </object>
+                      <object class="GtkCellRendererText" id="cellrenderertextTeamDirectMessagesStatus"/>
                     </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumnTeamDirectMessagesUser">
+                    <property name="title" translatable="yes">User</property>
                     <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumnTeamDirectMessagesUser">
-                        <property name="title" translatable="yes">User</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertextTeamDirectMessagesUser"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
+                      <object class="GtkCellRendererText" id="cellrenderertextTeamDirectMessagesUser"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
                     </child>
                   </object>
                 </child>
@@ -460,9 +441,9 @@
             <child>
               <object class="GtkButton" id="buttonTeamDirectMessagesMore">
                 <property name="label" translatable="yes">More ...</property>
-                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="no_show_all">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>

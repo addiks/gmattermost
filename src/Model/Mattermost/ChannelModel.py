@@ -104,7 +104,7 @@ class ChannelModel:
         server = teamModel.getServer()
 
         # UserModel
-        myUser = server.getUser()
+        myUser = server.getSelfUser()
 
         myUserId = myUser.getId()
 
