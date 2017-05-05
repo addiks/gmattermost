@@ -5,13 +5,14 @@ from gi.repository import Gtk, GdkPixbuf
 from .ChatController import ChatController
 
 class TeamController:
-    __gladeBuilder = None     # Gtk.Builder
-    __application = None      # Application
-    __window = None           # Gtk.Window
-    __serverModel = None      # Mattermost.ServerModel
-    __loggedInModel = None    # Mattermost.ServerLoggedInModel
-    __teamModel = None        # Mattermost.TeamModel
-    __channelControllers = {} # ChatController[]
+    __gladeBuilder = None        # Gtk.Builder
+    __application = None         # Application
+    __window = None              # Gtk.Window
+    __windowTitleTemplate = None # string
+    __serverModel = None         # Mattermost.ServerModel
+    __loggedInModel = None       # Mattermost.ServerLoggedInModel
+    __teamModel = None           # Mattermost.TeamModel
+    __channelControllers = {}    # ChatController[]
 
     def __init__(self, application, url, username, password, teamName):
         self.__application = application
@@ -20,6 +21,7 @@ class TeamController:
         self.__gladeBuilder.connect_signals(self)
 
         self.__window = self.__gladeBuilder.get_object('windowTeam')
+        self.__windowTitleTemplate = self.__window.get_title()
 
         self.__serverModel = application.getServerModel(url)
 
@@ -80,6 +82,9 @@ class TeamController:
         # Gtk.Image
         imageTeamAvatar = gladeBuilder.get_object('imageTeamAvatar')
 
+        # Gtk.Window
+        window = self.__window
+
         # UserModel
         selfUser = self.__loggedInModel.getSelfUser()
 
@@ -104,6 +109,11 @@ class TeamController:
             'USERNAME': selfUser.getUseName(),
             'TEAMNAME': teamModel.getName()
         }
+
+        windowTitle = self.__windowTitleTemplate
+        for variableKey in variables:
+            windowTitle = windowTitle.replace("%"+variableKey+"%", variables[variableKey])
+        window.set_title(windowTitle)
 
         for labelId in ["labelTeamNamesUsername", "labelTeamNamesTeam"]:
             # Gtk.Label

@@ -1,7 +1,6 @@
 
 from .TeamModel import TeamModel
 from .UserModel import UserModel
-import traceback
 
 class ServerLoggedInModel:
     __serverModel = None # ServerModel
