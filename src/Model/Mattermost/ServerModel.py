@@ -18,7 +18,7 @@ class ServerModel:
         while url[-1] == "/" and len(url) > 0:
             url = url[0:-1]
         self.__url = url
-        self.__http = httplib2.Http(".cache")
+        self.__http = httplib2.Http()
 
     def getUrl(self):
         return self.__url

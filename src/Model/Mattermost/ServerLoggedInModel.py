@@ -154,5 +154,6 @@ class ServerLoggedInModel:
         return team
 
     def callServer(self, method, route, data=None, headers={}, version="v3", returnPlainResponse=False):
+        print("Token: " + str(self.__token))
         headers['Authorization'] = "Bearer " + self.__token
         return self.__serverModel.callServer(method, route, data, headers, version, returnPlainResponse)

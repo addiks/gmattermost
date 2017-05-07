@@ -1,4 +1,7 @@
 
+from .PostModel import PostModel
+
+import collections
 
 class ChannelModel:
     __teamModel = None # TeamModel
@@ -92,6 +95,9 @@ class ChannelModel:
     def isPrivateGroup(self):
         return self.__channelType == 'P'
 
+    def getTeamModel(self):
+        return self.__teamModel
+
     def getDirectMessageRemoteUserId(self):
         remoteUserId = None
 
@@ -132,9 +138,16 @@ class ChannelModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("POST", "/posts/update")
 
-    def getPostsByChannel(self, offset=0, limit=30):
-        raise Exception("*UNIMPLEMENTED*")
+    def getPosts(self, offset=0, limit=30):
         headers, result = self.callServer("GET", "/posts/page/%d/%d" % (offset, limit))
+        posts = collections.OrderedDict()
+        for key in reversed(result['order']):
+            posts[key] = PostModel.fromJsonPostObject(self, result['posts'][key])
+        return posts
+
+    def getLastPosts(self, offset=0, limit=30):
+        actualOffset = self.__totalMessageCount - offset - limit
+        return self.getPosts(actualOffset, limit)
 
     def getPostsByChannelSinceTime(self, time):
         raise Exception("*UNIMPLEMENTED*")
