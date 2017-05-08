@@ -95,15 +95,16 @@ class TeamController:
             avatarImageData = selfUser.getImage()
             self.__application.putCache(cacheId, avatarImageData)
 
-        # GdkPixbuf.Pixbuf
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            avatarImagePath,
-            width=48,
-            height=48,
-            preserve_aspect_ratio=False
-        )
+        if os.path.exists(avatarImagePath):
+            # GdkPixbuf.Pixbuf
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                avatarImagePath,
+                width=48,
+                height=48,
+                preserve_aspect_ratio=False
+            )
 
-        imageTeamAvatar.set_from_pixbuf(pixbuf)
+            imageTeamAvatar.set_from_pixbuf(pixbuf)
 
         variables = {
             'USERNAME': selfUser.getUseName(),

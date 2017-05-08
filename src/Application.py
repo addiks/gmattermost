@@ -48,9 +48,9 @@ class Application(Gtk.Application):
         if profile.getShowOnStartup() or True:
             self.showTeamsListWindow()
 
-    def showTeamsListWindow(self):
+    def showTeamsListWindow(self, force=False):
         teamsController = TeamsListController(self)
-        teamsController.show()
+        teamsController.show(force)
 
     def getAssetPath(self):
         return self.__assetPath

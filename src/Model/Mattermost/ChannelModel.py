@@ -74,6 +74,32 @@ class ChannelModel:
         self.__extraUpdatedAt = extraUpdatedAt
         self.__creatorId = creatorId
 
+    def registerTypingListener(self, callback):
+        self.__registerEventListener("typing", callback, broadcast={
+            'channel_id': self.__channelId
+        })
+
+    def registerPostedListener(self, callback):
+        self.__registerEventListener("posted", callback, broadcast={
+            'channel_id': self.__channelId
+        })
+
+    def registerPostEditedListener(self, callback):
+        self.__registerEventListener("post_edited", callback, broadcast={
+            'channel_id': self.__channelId
+        })
+
+    def registerPostDeletedListener(self, callback):
+        self.__registerEventListener("post_deleted", callback, broadcast={
+            'channel_id': self.__channelId
+        })
+
+    def notifyIsTyping(self):
+        self.__sendWebsocketRequest("user_typing", {
+            'channel_id': self.__channelId,
+            'parent_id': ""
+        })
+
     def getId(self):
         return self.__channelId
 
@@ -130,9 +156,24 @@ class ChannelModel:
 
         return remoteUser
 
-    def createPost(self):
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("POST", "/posts/create")
+    def createPost(self, message):
+        # TeamModel
+        teamModel = self.__teamModel
+
+        # ServerLoggedInModel
+        serverModel = teamModel.getServer()
+
+        # UserModel
+        selfUser = serverModel.getSelfUser()
+
+        headers, result = self.callServer("POST", "/posts/create", {
+            'file_ids': [],
+            'message': message,
+            'channel_id': self.__channelId,
+            'pending_post_id': serverModel.createId(),
+            'user_id': selfUser.getId(),
+            'create_at': 0
+        })
 
     def updatePost(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -141,12 +182,15 @@ class ChannelModel:
     def getPosts(self, offset=0, limit=30):
         headers, result = self.callServer("GET", "/posts/page/%d/%d" % (offset, limit))
         posts = collections.OrderedDict()
-        for key in reversed(result['order']):
-            posts[key] = PostModel.fromJsonPostObject(self, result['posts'][key])
+        if 'order' in result:
+            for key in reversed(result['order']):
+                posts[key] = PostModel.fromJsonPostObject(self, result['posts'][key])
         return posts
 
     def getLastPosts(self, offset=0, limit=30):
         actualOffset = self.__totalMessageCount - offset - limit
+        if actualOffset < 0:
+            actualOffset = 0
         return self.getPosts(actualOffset, limit)
 
     def getPostsByChannelSinceTime(self, time):
@@ -191,3 +235,21 @@ class ChannelModel:
 
     def callServer(self, method, route, data=None):
         return self.__teamModel.callServer(method, "/channels/%s%s" % (self.__channelId, route), data)
+
+    def __registerEventListener(self, eventName, callback, broadcast=None):
+        # TeamModel
+        teamModel = self.__teamModel
+
+        # ServerLoggedInModel
+        server = teamModel.getServer()
+
+        server.registerEventListener(eventName, callback, broadcast)
+
+    def __sendWebsocketRequest(self, actionName, payloadData={}, responseCallback=None):
+        # TeamModel
+        teamModel = self.__teamModel
+
+        # ServerLoggedInModel
+        server = teamModel.getServer()
+
+        server.sendWebsocketRequest(actionName, payloadData, responseCallback)

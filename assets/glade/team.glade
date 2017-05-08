@@ -28,6 +28,7 @@
   <object class="GtkWindow" id="windowTeam">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">gMattermost - Team - %TEAMNAME%</property>
+    <property name="default_height">360</property>
     <child>
       <object class="GtkBox" id="boxTeam">
         <property name="visible">True</property>

@@ -1,14 +1,26 @@
 
+import asyncio
+import websockets
+import json
+import uuid
+
+from _thread import start_new_thread
+
 from .TeamModel import TeamModel
 from .UserModel import UserModel
 
 class ServerLoggedInModel:
-    __serverModel = None # ServerModel
-    __selfUser = None    # UserModel
+    __serverModel = None      # ServerModel
+    __selfUser = None         # UserModel
+    __webSocket = None        # websocket
+    __webSocketSeq = 0        # integer
+    __webSocketCallbacks = {} # callback[]
+    __eventListener = {}      # callback[]
     __userCache = {}
     __username = None
     __password = None
     __token = None
+    __isStopping = False      # boolean
 
     def __init__(self, serverModel, username, password):
         if not serverModel.isReachable():
@@ -29,6 +41,157 @@ class ServerLoggedInModel:
         self.__token = responseHeaders['token']
         self.__username = username
         self.__password = password
+
+        asyncio.get_event_loop().run_until_complete(self.__connectWebsocket())
+
+        self.sendWebsocketRequest("authentication_challenge", {
+            'token': self.__token
+        })
+
+        start_new_thread(asyncio.get_event_loop().run_until_complete, (self.__handleWebsocket(), ))
+
+    async def __connectWebsocket(self):
+        # ServerModel
+        server = self.__serverModel
+
+        scheme = server.getUrlScheme()
+        hostname = server.getUrlHostname()
+        port = server.getUrlPort()
+        path = server.getUrlPath()
+
+        webSocketScheme = 'ws'
+        if scheme == "https":
+            webSocketScheme = 'wss'
+
+        portStr = ""
+        if port != None:
+            portStr = ":" + str(port)
+
+        url = webSocketScheme + '://' + hostname + portStr + path + "/api/v3/users/websocket"
+
+        print(url)
+
+        webSocket = await websockets.connect(url)
+        self.__webSocket = webSocket
+
+    async def __handleWebsocket(self):
+        # websockets.client.WebSocketClientProtocol
+        webSocket = self.__webSocket
+
+        while not self.__isStopping:
+            messageJson = await webSocket.recv()
+
+            print("per WS received: " + messageJson)
+
+            message = json.loads(messageJson)
+
+            if "seq_reply" in message:
+                seqNo = str(message["seq_reply"])
+                if seqNo in self.__webSocketCallbacks:
+                    errorObject = None
+                    if "error" in message:
+                        errorObject = message["error"]
+                    start_new_thread(self.__webSocketCallbacks[seqNo], (message['status'], errorObject))
+
+            if "event" in message:
+                eventName = str(message["event"])
+                eventData = message["data"]
+
+                # TODO: handle broadcase-info (https://api.mattermost.com/v3.7/#tag/WebSocket)
+                #  "broadcast":{ # info about who this event was sent to
+                #    "omit_users": null,
+                #    "user_id": "ay5sq51sebfh58ktrce5ijtcwy",
+                #    "channel_id": "",
+                #    "team_id": ""
+                #  }
+
+                if eventName in self.__eventListener:
+                    broadcast = message["broadcast"]
+                    for broadcastFilter, callback in self.__eventListener[eventName]:
+                        if broadcastFilter == None:
+                            start_new_thread(callback, (eventData, ))
+                        else:
+                            matches = True
+                            for broadcastKey in broadcastFilter:
+                                broadcastValue = broadcastFilter[broadcastKey]
+                                if broadcastValue != broadcast[broadcastKey]:
+                                    matches = False
+                                    break
+                            if matches:
+                                start_new_thread(callback, (eventData, ))
+
+        webSocket.close()
+
+    def registerNewUserListener(self, callback):
+        self.registerEventListener("new_user", callback)
+
+    def registerLeaveTeamListener(self, callback):
+        self.registerEventListener("leave_team", callback)
+
+    def registerUserAddedListener(self, callback):
+        self.registerEventListener("user_added", callback)
+
+    def registerUserUpdatedListener(self, callback):
+        self.registerEventListener("user_updated", callback)
+
+    def registerUserRemovedListener(self, callback):
+        self.registerEventListener("user_removed", callback)
+
+    def registerPreferenceChangedListener(self, callback):
+        self.registerEventListener("preference_changed", callback)
+
+    def registerEphemeralMessageListener(self, callback):
+        self.registerEventListener("ephemeral_message", callback)
+
+    def registerStatusChangeListener(self, callback):
+        self.registerEventListener("status_change", callback)
+
+    def registerHelloListener(self, callback):
+        self.registerEventListener("hello", callback)
+
+    def registerWebRTCListener(self, callback):
+        self.registerEventListener("webrtc", callback)
+
+    def requestStatuses(self, callback):
+        self.sendWebsocketRequest("get_statuses", responseCallback=callback)
+
+    def requestStatusesById(self, idList, callServer):
+        self.sendWebsocketRequest("get_statuses_by_ids", idList, callback)
+        # TODO: confirm that this is correct
+
+    def registerEventListener(self, eventName, callback, broadcast=None):
+        eventName = str(eventName)
+        if eventName not in self.__eventListener:
+            self.__eventListener[eventName] = []
+        self.__eventListener[eventName].append([broadcast, callback])
+
+    def sendWebsocketRequest(self, actionName, payloadData={}, responseCallback=None):
+        self.__webSocketSeq += 1
+
+        seqNo = str(self.__webSocketSeq)
+
+        if responseCallback != None:
+            self.__webSocketCallbacks[seqNo] = responseCallback
+
+        data = {
+            'seq': self.__webSocketSeq,
+            'action': str(actionName),
+            'data': payloadData
+        }
+
+        dataJson = json.dumps(data)
+
+        result = self.__webSocket.send(dataJson)
+
+        print(result)
+
+        asyncio.get_event_loop().run_until_complete(result)
+
+        print("per WS sent: " + dataJson)
+
+    def logout(self):
+        self.__isStopping = True
+        # TODO send logout REST request
 
     def createUser(self):
         raise Exception("*UNIMPLEMENTED*")
@@ -105,9 +268,10 @@ class ServerLoggedInModel:
         headers, result = self.callServer("POST", "/users/send_password_reset")
 
     def getUserImage(self, userId, lastPictureUpdate):
-        cachePath = ""
-        url = "/users/%s/image?time=%d" % (userId, lastPictureUpdate)
-        headers, imageData = self.callServer("GET", url, returnPlainResponse=True)
+        imageData = None
+        if lastPictureUpdate != None:
+            url = "/users/%s/image?time=%d" % (userId, lastPictureUpdate)
+            headers, imageData = self.callServer("GET", url, returnPlainResponse=True)
         return imageData
 
     def getFile(self, fileId):
@@ -166,6 +330,9 @@ class ServerLoggedInModel:
         if team == None:
             raise Exception("Team %s does not exist or is not accessable for this user!" % teamName)
         return team
+
+    def createId(self):
+        return str(uuid.uuid4())
 
     def callServer(self, method, route, data=None, headers={}, version="v3", returnPlainResponse=False):
         print("Token: " + str(self.__token))

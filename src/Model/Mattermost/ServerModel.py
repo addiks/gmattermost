@@ -2,6 +2,8 @@
 import httplib2
 import json
 
+from urllib.parse import urlparse
+
 from .FileModel import FileModel
 from .TeamModel import TeamModel
 from .ServerLoggedInModel import ServerLoggedInModel
@@ -11,6 +13,7 @@ from .ServerLoggedInModel import ServerLoggedInModel
 class ServerModel:
     __http = None
     __url = None
+    __urlParsed = None # urlparse.ParseResult
     __isReachable = None
     __loggedInModels = {}
 
@@ -18,10 +21,23 @@ class ServerModel:
         while url[-1] == "/" and len(url) > 0:
             url = url[0:-1]
         self.__url = url
+        self.__urlParsed = urlparse(url)
         self.__http = httplib2.Http()
 
     def getUrl(self):
         return self.__url
+
+    def getUrlScheme(self):
+        return self.__urlParsed.scheme
+
+    def getUrlHostname(self):
+        return self.__urlParsed.hostname
+
+    def getUrlPort(self):
+        return self.__urlParsed.port
+
+    def getUrlPath(self):
+        return self.__urlParsed.path
 
     def ping(self):
         url = self.__url + "/api/v3"

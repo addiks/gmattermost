@@ -3,9 +3,10 @@ from .EditTeamController import EditTeamController
 from .TeamController import TeamController
 
 class TeamsListController:
-    __application = None  # Application
-    __gladeBuilder = None # Gtk.Builder
-    __window = None       # Gtk.Window
+    __application = None   # Application
+    __gladeBuilder = None  # Gtk.Builder
+    __window = None        # Gtk.Window
+    __teamControllers = {} # dict(TeamController)
 
     def __init__(self, application):
         self.__application = application
@@ -152,23 +153,25 @@ class TeamsListController:
         teamsListstore.set_value(treeIter, 2, doesConnectOnStartup)
         profile.setConnectTeamOnStartup(url, teamName, username, doesConnectOnStartup)
 
-    def show(self):
+    def show(self, force=False):
         # ProfileModel
         profile = self.__application.getProfileModel()
 
-        if profile.getShowOnStartup():
+        if profile.getShowOnStartup() or force:
             self.__window.show_all()
 
         for team in profile.getTeams():
             if team['open-on-startup']:
-                teamController = TeamController(
-                    self.__application,
-                    team['url'],
-                    team['username'],
-                    team['password'],
-                    team['team']
-                )
-                teamController.show()
+                teamKey = team['username'] + ":" + team['password'] + "@" + team['url']
+                if teamKey not in self.__teamControllers:
+                    self.__teamControllers[teamKey] = TeamController(
+                        self.__application,
+                        team['url'],
+                        team['username'],
+                        team['password'],
+                        team['team']
+                    )
+                self.__teamControllers[teamKey].show()
 
 
     def __rebuildTeamsList(self):

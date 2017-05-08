@@ -24,6 +24,7 @@ class CacheModel:
         return content
 
     def put(self, cacheId, content):
-        filePath = self.getCacheFilePath(cacheId)
-        with open(filePath, "wb") as fileHandle:
-            fileHandle.write(content)
+        if content != None:
+            filePath = self.getCacheFilePath(cacheId)
+            with open(filePath, "wb") as fileHandle:
+                fileHandle.write(content)

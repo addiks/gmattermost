@@ -1,4 +1,6 @@
 
+import json
+
 class ChatController:
     __gladeBuilder = None        # Gtk.Builder
     __application = None         # Application
@@ -6,10 +8,16 @@ class ChatController:
     __windowTitleTemplate = None # string
     __channelModel = None        # Mattermost.ChannelModel
     __isWindowOpen = False       # boolean
+    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
 
     def __init__(self, application, channelModel):
         self.__application = application
         self.__channelModel = channelModel
+
+        channelModel.registerTypingListener(self.onTypingEvent)
+        channelModel.registerPostedListener(self.onMessagePostedEvent)
+        channelModel.registerPostEditedListener(self.onMessageEditedEvent)
+        channelModel.registerPostDeletedListener(self.onMessageDeletedEvent)
 
     def show(self):
         if not self.__isWindowOpen:
@@ -27,6 +35,95 @@ class ChatController:
 
     def onWindowDestroyed(self, event, userData=None):
         self.__isWindowOpen = False
+
+    def onTypingEvent(self, data=None):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        print("onTypingEvent: " + repr(data))
+
+    def onMessagePostedEvent(self, data=None):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.Window
+        window = self.__window
+
+        # Gtk.ListStore
+        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+
+        postJson = data['post']
+        postData = json.loads(postJson)
+
+        # TODO: load post-model properly
+
+        # Gtk.TreeIter
+        treeIter = liststoreChatContent.append()
+
+        self.__postTreeIterMap[postData['id']] = treeIter
+
+        liststoreChatContent.set_value(treeIter, 0, postData['user_id'])
+        liststoreChatContent.set_value(treeIter, 1, data['sender_name'])
+        liststoreChatContent.set_value(treeIter, 2, postData['message'])
+
+        window.present()
+
+        print("onMessagePostedEvent: " + repr(data))
+
+    def onMessageEditedEvent(self, data=None):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+
+        postJson = data['post']
+        postData = json.loads(postJson)
+
+        # Gtk.TreeIter
+        treeIter = self.__postTreeIterMap[postData['id']]
+
+        liststoreChatContent.set_value(treeIter, 2, postData['message'])
+
+        print("onMessageEditedEvent: " + repr(data))
+
+    def onMessageDeletedEvent(self, data=None):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+
+        postJson = data['post']
+        postData = json.loads(postJson)
+
+        # Gtk.TreeIter
+        treeIter = self.__postTreeIterMap[postData['id']]
+
+        liststoreChatContent.remove(treeIter)
+
+        print("onMessageDeletedEvent: " + repr(data))
+
+    def onSubmitButtonPressed(self, button, data=None):
+        self.__doSubmit()
+
+    def onChatInputKeyRelease(self, textInput, event, data=None):
+         if event.keyval == 65293: # = enter
+            self.__doSubmit()
+
+    def __doSubmit(self):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # ChannelModel
+        channelModel = self.__channelModel
+
+        # Gtk.EntryBuffer
+        entrybufferChatInput = gladeBuilder.get_object('entrybufferChatInput')
+
+        message = entrybufferChatInput.get_text()
+        channelModel.createPost(message)
+        entrybufferChatInput.set_text("", 0)
 
     def __reload(self):
         # Gtk.Builder
@@ -52,7 +149,8 @@ class ChatController:
 
         variables = {
             'USERNAME': selfUser.getUseName(),
-            'NAME': teamModel.getName()
+            'CHANNELNAME': channelModel.getName(),
+            'TEAMNAME': teamModel.getName(),
         }
 
         windowTitle = self.__windowTitleTemplate
@@ -68,6 +166,8 @@ class ChatController:
             user = post.getUser()
 
             treeIter = liststoreChatContent.append()
+
+            self.__postTreeIterMap[postId] = treeIter
 
             userId = ""
             userName = ""
