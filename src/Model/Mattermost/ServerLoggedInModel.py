@@ -5,6 +5,7 @@ from .UserModel import UserModel
 class ServerLoggedInModel:
     __serverModel = None # ServerModel
     __selfUser = None    # UserModel
+    __userCache = {}
     __username = None
     __password = None
     __token = None
@@ -52,11 +53,24 @@ class ServerLoggedInModel:
         headers, result = self.callServer("POST", "/users/search")
 
     def getUsersByIds(self, userIds):
-        headers, result = self.callServer("POST", "/users/ids", userIds)
         users = []
-        for userId in result:
-            userJsonData = result[userId]
-            users.append(UserModel.fromJsonUserObject(userJsonData, self))
+        print(userIds)
+        userIdsToFetch = []
+        for userId in userIds:
+            if userId in self.__userCache:
+                users.append(self.__userCache[userId])
+            else:
+                userIdsToFetch.append(userId)
+
+        if len(userIdsToFetch) > 0:
+            headers, result = self.callServer("POST", "/users/ids", userIdsToFetch)
+
+            for userId in result:
+                userJsonData = result[userId]
+                user = UserModel.fromJsonUserObject(userJsonData, self)
+                users.append(user)
+                self.__userCache[userId] = user
+
         return users
 
     def getUserById(self, userId):
