@@ -30,7 +30,6 @@ class ChatController:
             self.__reload()
 
         else:
-            self.__reload()
             self.__window.present()
 
     def onWindowDestroyed(self, event, userData=None):
@@ -157,6 +156,8 @@ class ChatController:
         for variableKey in variables:
             windowTitle = windowTitle.replace("%"+variableKey+"%", variables[variableKey])
         window.set_title(windowTitle)
+
+        liststoreChatContent.clear()
 
         posts = channelModel.getLastPosts()
         for postId in posts:

@@ -1,18 +1,27 @@
 
 import os
+import json
 
-from gi.repository import Gtk, GdkPixbuf
+from _thread import start_new_thread
+
+from gi.repository import GLib, Gtk, GdkPixbuf
 from .ChatController import ChatController
 
 class TeamController:
-    __gladeBuilder = None        # Gtk.Builder
-    __application = None         # Application
-    __window = None              # Gtk.Window
-    __windowTitleTemplate = None # string
-    __serverModel = None         # Mattermost.ServerModel
-    __loggedInModel = None       # Mattermost.ServerLoggedInModel
-    __teamModel = None           # Mattermost.TeamModel
-    __channelControllers = {}    # ChatController[]
+    __gladeBuilder = None           # Gtk.Builder
+    __application = None            # Application
+    __window = None                 # Gtk.Window
+    __windowTitleTemplate = None    # string
+    __serverModel = None            # Mattermost.ServerModel
+    __loggedInModel = None          # Mattermost.ServerLoggedInModel
+    __teamModel = None              # Mattermost.TeamModel
+    __channelControllers = {}       # dict(Mattermost.ChatController)
+    __channelTreeIterMap = {}       # dict(Gtk.TreeIter)
+    __privateGroupTreeIterMap = {}  # dict(Gtk.TreeIter)
+    __directMessageTreeIterMap = {} # dict(Gtk.TreeIter)
+
+    FONT_WEIGHT_NORMAL=400
+    FONT_WEIGHT_BOLD=700
 
     def __init__(self, application, url, username, password, teamName):
         self.__application = application
@@ -29,6 +38,15 @@ class TeamController:
 
         self.__teamModel = self.__loggedInModel.getTeam(teamName)
 
+        self.__loggedInModel.registerPostedListener(self.onMessagePosted)
+
+        # Mattermost.UserModel
+        selfUser = self.__loggedInModel.getSelfUser()
+
+        self.__teamModel.registerChannelCreatedListener(self.onChannelCreated, {
+            'user_id': selfUser.getId()
+        })
+
     def show(self):
         self.__reload()
         self.__window.show_all()
@@ -38,10 +56,67 @@ class TeamController:
             # Mattermost.ChannelModel
             channelModel = self.__teamModel.getChannel(channelId)
 
-            chatController = ChatController(self.__application, channelModel)
+            # ChatController
+            chatController = None
+
+            if channelModel != None:
+                chatController = ChatController(self.__application, channelModel)
 
             self.__channelControllers[channelId] = chatController
         return self.__channelControllers[channelId]
+
+    def onChannelCreated(self, data=None):
+        channelId = data['channel_id']
+        teamId = data['team_id']
+
+        # Mattermost.TeamModel
+        teamModel = self.__teamModel
+
+        if teamId == teamModel.getId():
+            # Mattermost.ChannelModel
+            channelModel = teamModel.getChannel(channelId)
+
+            self.__addChannelToView(channelModel)
+
+    def onMessagePosted(self, data=None):
+
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreTeamChannels = gladeBuilder.get_object('liststoreTeamChannels')
+
+        # Gtk.ListStore
+        liststoreTeamPrivateGroups = gladeBuilder.get_object('liststoreTeamPrivateGroups')
+
+        # Gtk.ListStore
+        liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
+
+        postJson = data['post']
+        postData = json.loads(postJson)
+
+        # Mattermost.ChatController
+        chatController = self.getChatController(postData['channel_id'])
+
+        GLib.idle_add(chatController.show)
+
+        if postData['channel_id'] in self.__channelTreeIterMap:
+            # Gtk.TreeIter
+            treeIter = self.__channelTreeIterMap[postData['channel_id']]
+
+            liststoreTeamChannels.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
+
+        if postData['channel_id'] in self.__privateGroupTreeIterMap:
+            # Gtk.TreeIter
+            treeIter = self.__privateGroupTreeIterMap[postData['channel_id']]
+
+            liststoreTeamPrivateGroups.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
+
+        if postData['channel_id'] in self.__directMessageTreeIterMap:
+            # Gtk.TreeIter
+            treeIter = self.__directMessageTreeIterMap[postData['channel_id']]
+
+            liststoreTeamDirectMessages.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
 
     def onTeamChannelRowActivated(self, treeView, treePath, column, data=None):
         # Gtk.TreeView
@@ -63,21 +138,52 @@ class TeamController:
         chatController = self.getChatController(channelId)
         chatController.show()
 
+    def onTeamDirectMessageRowActivated(self, treeView, treePath, column, data=None):
+        # Gtk.TreeView
+        # Gtk.TreePath
+        # Gtk.TreeViewColumn
+
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
+
+        # Gtk.TreeIter
+        treeIter = liststoreTeamDirectMessages.get_iter(treePath)
+
+        channelId = liststoreTeamDirectMessages.get_value(treeIter, 1)
+
+        # ChatController
+        chatController = self.getChatController(channelId)
+        chatController.show()
+
+    def onTeamPrivateGroupRowActivated(self, treeView, treePath, column, data=None):
+        # Gtk.TreeView
+        # Gtk.TreePath
+        # Gtk.TreeViewColumn
+
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreTeamPrivateGroups = gladeBuilder.get_object('liststoreTeamPrivateGroups')
+
+        # Gtk.TreeIter
+        treeIter = liststoreTeamPrivateGroups.get_iter(treePath)
+
+        channelId = liststoreTeamPrivateGroups.get_value(treeIter, 1)
+
+        # ChatController
+        chatController = self.getChatController(channelId)
+        chatController.show()
+
     def __reload(self):
         # MattermostTeamModel
         teamModel = self.__teamModel
 
         # Gtk.Builder
         gladeBuilder = self.__gladeBuilder
-
-        # Gtk.ListStore
-        liststoreTeamChannels = gladeBuilder.get_object('liststoreTeamChannels')
-
-        # Gtk.ListStore
-        liststoreTeamPrivateGroups = gladeBuilder.get_object('liststoreTeamPrivateGroups')
-
-        # Gtk.ListStore
-        liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
 
         # Gtk.Image
         imageTeamAvatar = gladeBuilder.get_object('imageTeamAvatar')
@@ -125,41 +231,85 @@ class TeamController:
                 templateText = templateText.replace("%"+variableKey+"%", variables[variableKey])
             label.set_text(templateText)
 
+        self.__addChannelsToView(teamModel.getChannels())
+
+    def __addChannelsToView(self, channels):
+
         directMessageUserIdToTreeIterMap = {}
 
-        for channel in teamModel.getChannels():
+        for channel in channels:
             # Mattermost.ChannelModel
 
-            if channel.isOpen():
-                # Gtk.TreeIter
-                treeIter = liststoreTeamChannels.append()
-
-                liststoreTeamChannels.set_value(treeIter, 0, channel.getDisplayName())
-                liststoreTeamChannels.set_value(treeIter, 1, channel.getId())
-
-            if channel.isDirectMessage():
-                # Gtk.TreeIter
-                treeIter = liststoreTeamDirectMessages.append()
-
-                remoteUserId = channel.getDirectMessageRemoteUserId()
-
-                directMessageUserIdToTreeIterMap[remoteUserId] = treeIter
-
-                liststoreTeamDirectMessages.set_value(treeIter, 1, remoteUserId)
-
-            if channel.isPrivateGroup():
-                # Gtk.TreeIter
-                treeIter = liststoreTeamPrivateGroups.append()
-
-                liststoreTeamPrivateGroups.set_value(treeIter, 0, channel.getDisplayName())
+            self.__addChannelToView(channel, directMessageUserIdToTreeIterMap)
 
         # Load all direct-message remote users at once
+        # list(Mattermost.UserModel)
         remoteUsers = self.__loggedInModel.getUsersByIds(list(directMessageUserIdToTreeIterMap))
 
         for remoteUser in remoteUsers:
-            # UserModel
+            # Mattermost.UserModel
 
             treeIter = directMessageUserIdToTreeIterMap[remoteUser.getId()]
             liststoreTeamDirectMessages.set_value(treeIter, 0, remoteUser.getUseName())
 
+    def __addChannelToView(self, channel, directMessageUserIdToTreeIterMap=None):
+        # Mattermost.ChannelModel
+
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreTeamChannels = gladeBuilder.get_object('liststoreTeamChannels')
+
+        # Gtk.ListStore
+        liststoreTeamPrivateGroups = gladeBuilder.get_object('liststoreTeamPrivateGroups')
+
+        # Gtk.ListStore
+        liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
+
+        doSetDirectMessageNames = False
+        if directMessageUserIdToTreeIterMap == None:
+            directMessageUserIdToTreeIterMap = {}
+            doSetDirectMessageNames = True
+
+        # TODO: find out if channel's have unread messages
+
+        if channel.isOpen():
+            # Gtk.TreeIter
+            treeIter = liststoreTeamChannels.append()
+
+            self.__channelTreeIterMap[channel.getId()] = treeIter
+
+            liststoreTeamChannels.set_value(treeIter, 0, channel.getDisplayName())
+            liststoreTeamChannels.set_value(treeIter, 1, channel.getId())
+            liststoreTeamChannels.set_value(treeIter, 2, self.FONT_WEIGHT_NORMAL) # hasUnreadMessages
+
+        if channel.isDirectMessage():
+            # Gtk.TreeIter
+            treeIter = liststoreTeamDirectMessages.append()
+
+            self.__directMessageTreeIterMap[channel.getId()] = treeIter
+
+            remoteUserId = channel.getDirectMessageRemoteUserId()
+
+            directMessageUserIdToTreeIterMap[remoteUserId] = treeIter
+
+            if doSetDirectMessageNames:
+                # Mattermost.UserModel
+                remoteUser = self.__loggedInModel.getUserById(remoteUserId)
+
+                liststoreTeamDirectMessages.set_value(treeIter, 0, remoteUser.getUseName())
+
+            liststoreTeamDirectMessages.set_value(treeIter, 1, remoteUserId)
+            liststoreTeamDirectMessages.set_value(treeIter, 2, self.FONT_WEIGHT_NORMAL) # hasUnreadMessages
+
+        if channel.isPrivateGroup():
+            # Gtk.TreeIter
+            treeIter = liststoreTeamPrivateGroups.append()
+
+            self.__privateGroupTreeIterMap[channel.getId()] = treeIter
+
+            liststoreTeamPrivateGroups.set_value(treeIter, 0, channel.getDisplayName())
+            liststoreTeamPrivateGroups.set_value(treeIter, 1, channel.getId())
+            liststoreTeamPrivateGroups.set_value(treeIter, 2, self.FONT_WEIGHT_NORMAL) # hasUnreadMessages
 #

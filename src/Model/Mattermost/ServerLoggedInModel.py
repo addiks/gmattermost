@@ -4,6 +4,7 @@ import websockets
 import json
 import uuid
 
+from gi.repository import GLib
 from _thread import start_new_thread
 
 from .TeamModel import TeamModel
@@ -91,25 +92,17 @@ class ServerLoggedInModel:
                     errorObject = None
                     if "error" in message:
                         errorObject = message["error"]
-                    start_new_thread(self.__webSocketCallbacks[seqNo], (message['status'], errorObject))
+                    GLib.idle_add(self.__webSocketCallbacks[seqNo], message['status'], errorObject)
 
             if "event" in message:
                 eventName = str(message["event"])
                 eventData = message["data"]
 
-                # TODO: handle broadcase-info (https://api.mattermost.com/v3.7/#tag/WebSocket)
-                #  "broadcast":{ # info about who this event was sent to
-                #    "omit_users": null,
-                #    "user_id": "ay5sq51sebfh58ktrce5ijtcwy",
-                #    "channel_id": "",
-                #    "team_id": ""
-                #  }
-
                 if eventName in self.__eventListener:
                     broadcast = message["broadcast"]
                     for broadcastFilter, callback in self.__eventListener[eventName]:
                         if broadcastFilter == None:
-                            start_new_thread(callback, (eventData, ))
+                            GLib.idle_add(callback, eventData)
                         else:
                             matches = True
                             for broadcastKey in broadcastFilter:
@@ -118,39 +111,51 @@ class ServerLoggedInModel:
                                     matches = False
                                     break
                             if matches:
-                                start_new_thread(callback, (eventData, ))
+                                GLib.idle_add(callback, eventData)
 
         webSocket.close()
 
-    def registerNewUserListener(self, callback):
-        self.registerEventListener("new_user", callback)
+    def registerTypingListener(self, callback, broadcast=None):
+        self.registerEventListener("typing", callback, broadcast)
 
-    def registerLeaveTeamListener(self, callback):
-        self.registerEventListener("leave_team", callback)
+    def registerPostedListener(self, callback, broadcast=None):
+        self.registerEventListener("posted", callback, broadcast)
 
-    def registerUserAddedListener(self, callback):
-        self.registerEventListener("user_added", callback)
+    def registerPostEditedListener(self, callback, broadcast=None):
+        self.registerEventListener("post_edited", callback, broadcast)
 
-    def registerUserUpdatedListener(self, callback):
-        self.registerEventListener("user_updated", callback)
+    def registerPostDeletedListener(self, callback, broadcast=None):
+        self.registerEventListener("post_deleted", callback, broadcast)
 
-    def registerUserRemovedListener(self, callback):
-        self.registerEventListener("user_removed", callback)
+    def registerNewUserListener(self, callback, broadcast=None):
+        self.registerEventListener("new_user", callback, broadcast)
 
-    def registerPreferenceChangedListener(self, callback):
-        self.registerEventListener("preference_changed", callback)
+    def registerLeaveTeamListener(self, callback, broadcast=None):
+        self.registerEventListener("leave_team", callback, broadcast)
 
-    def registerEphemeralMessageListener(self, callback):
-        self.registerEventListener("ephemeral_message", callback)
+    def registerUserAddedListener(self, callback, broadcast=None):
+        self.registerEventListener("user_added", callback, broadcast)
 
-    def registerStatusChangeListener(self, callback):
-        self.registerEventListener("status_change", callback)
+    def registerUserUpdatedListener(self, callback, broadcast=None):
+        self.registerEventListener("user_updated", callback, broadcast)
 
-    def registerHelloListener(self, callback):
-        self.registerEventListener("hello", callback)
+    def registerUserRemovedListener(self, callback, broadcast=None):
+        self.registerEventListener("user_removed", callback, broadcast)
 
-    def registerWebRTCListener(self, callback):
-        self.registerEventListener("webrtc", callback)
+    def registerPreferenceChangedListener(self, callback, broadcast=None):
+        self.registerEventListener("preference_changed", callback, broadcast)
+
+    def registerEphemeralMessageListener(self, callback, broadcast=None):
+        self.registerEventListener("ephemeral_message", callback, broadcast)
+
+    def registerStatusChangeListener(self, callback, broadcast=None):
+        self.registerEventListener("status_change", callback, broadcast)
+
+    def registerHelloListener(self, callback, broadcast=None):
+        self.registerEventListener("hello", callback, broadcast)
+
+    def registerWebRTCListener(self, callback, broadcast=None):
+        self.registerEventListener("webrtc", callback, broadcast)
 
     def requestStatuses(self, callback):
         self.sendWebsocketRequest("get_statuses", responseCallback=callback)

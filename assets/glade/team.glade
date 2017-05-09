@@ -9,6 +9,8 @@
       <column type="gchararray"/>
       <!-- column-name channel_id -->
       <column type="gchararray"/>
+      <!-- column-name font_weight -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreTeamDirectMessages">
@@ -17,12 +19,18 @@
       <column type="gchararray"/>
       <!-- column-name user_id -->
       <column type="gchararray"/>
+      <!-- column-name font_weight -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreTeamPrivateGroups">
     <columns>
       <!-- column-name display_name -->
       <column type="gchararray"/>
+      <!-- column-name channel_id -->
+      <column type="gchararray"/>
+      <!-- column-name font_weight -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkWindow" id="windowTeam">
@@ -257,6 +265,7 @@
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <property name="model">liststoreTeamChannels</property>
+                    <property name="headers_visible">False</property>
                     <property name="search_column">0</property>
                     <signal name="row-activated" handler="onTeamChannelRowActivated" swapped="no"/>
                     <child internal-child="selection">
@@ -370,7 +379,9 @@
                     <property name="margin_right">5</property>
                     <property name="hexpand">True</property>
                     <property name="model">liststoreTeamPrivateGroups</property>
+                    <property name="headers_visible">False</property>
                     <property name="search_column">0</property>
+                    <signal name="row-activated" handler="onTeamPrivateGroupRowActivated" swapped="no"/>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="treeview-selection5"/>
                     </child>
@@ -418,7 +429,9 @@
                     <property name="margin_right">5</property>
                     <property name="hexpand">True</property>
                     <property name="model">liststoreTeamDirectMessages</property>
+                    <property name="headers_visible">False</property>
                     <property name="search_column">0</property>
+                    <signal name="row-activated" handler="onTeamDirectMessageRowActivated" swapped="no"/>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="treeview-selection"/>
                     </child>

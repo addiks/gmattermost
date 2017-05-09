@@ -61,14 +61,14 @@ class TeamModel:
         self.__inviteId = inviteId
         self.__allowOpenInvite = allowOpenInvite
 
-    def registerChannelCreatedListener(self, callback):
-        self.__registerEventListener("channel_created", callback)
+    def registerChannelCreatedListener(self, callback, broadcast=None):
+        self.__registerEventListener("channel_created", callback, broadcast)
 
-    def registerChannelDeletedListener(self, callback):
-        self.__registerEventListener("channel_deleted", callback)
+    def registerChannelDeletedListener(self, callback, broadcast=None):
+        self.__registerEventListener("channel_deleted", callback, broadcast)
 
-    def registerDirectMessageAddedListener(self, callback):
-        self.__registerEventListener("direct_added", callback)
+    def registerDirectMessageAddedListener(self, callback, broadcast=None):
+        self.__registerEventListener("direct_added", callback, broadcast)
 
     def getServer(self):
         return self.__serverModel
@@ -197,8 +197,8 @@ class TeamModel:
     def callServer(self, method, route, data=None):
         return self.__serverModel.callServer(method, "/teams/%s%s" % (self.__teamId, route), data)
 
-    def __registerEventListener(self, eventName, callback):
+    def __registerEventListener(self, eventName, callback, broadcast=None):
         # ServerLoggedInModel
         server = self.getServer()
 
-        server.registerEventListener(eventName, callback)
+        server.registerEventListener(eventName, callback, broadcast)
