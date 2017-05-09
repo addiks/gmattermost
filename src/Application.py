@@ -1,5 +1,8 @@
 
-from gi.repository import Gio, Gtk
+import gi
+gi.require_version('Notify', '0.7')
+
+from gi.repository import Gio, Gtk, Notify
 from os.path import dirname
 import os
 
@@ -23,6 +26,8 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.FLAGS_NONE
         )
         self.connect("activate", self.onActivate)
+
+        Notify.init("gmattermost")
 
         assetPath = dirname(dirname(__file__)) + "/assets/"
 

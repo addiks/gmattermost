@@ -4,7 +4,7 @@ import json
 
 from _thread import start_new_thread
 
-from gi.repository import GLib, Gtk, GdkPixbuf
+from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 from .ChatController import ChatController
 
 class TeamController:
@@ -95,26 +95,46 @@ class TeamController:
         postJson = data['post']
         postData = json.loads(postJson)
 
+        channelId = postData['channel_id']
+
         # Mattermost.ChatController
-        chatController = self.getChatController(postData['channel_id'])
+        chatController = self.getChatController(channelId)
+
+        # Mattermost.ChannelModel
+        channel = self.__teamModel.getChannel(channelId)
+
+        # Mattermost.UserModel
+        user = self.__loggedInModel.getUserById(postData['user_id'])
+
+        # Mattermost.UserModel
+        selfUser = self.__loggedInModel.getSelfUser()
 
         GLib.idle_add(chatController.show)
 
+        if selfUser.getId() != user.getId():
+            # Notify.Notification
+            notification = Notify.Notification.new("gMattermost", "%s - %s: %s" % (
+                channel.getDisplayName(),
+                user.getUseName(),
+                postData['message']
+            ))
+            success = notification.show()
+
         if postData['channel_id'] in self.__channelTreeIterMap:
             # Gtk.TreeIter
-            treeIter = self.__channelTreeIterMap[postData['channel_id']]
+            treeIter = self.__channelTreeIterMap[channelId]
 
             liststoreTeamChannels.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
 
         if postData['channel_id'] in self.__privateGroupTreeIterMap:
             # Gtk.TreeIter
-            treeIter = self.__privateGroupTreeIterMap[postData['channel_id']]
+            treeIter = self.__privateGroupTreeIterMap[channelId]
 
             liststoreTeamPrivateGroups.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
 
         if postData['channel_id'] in self.__directMessageTreeIterMap:
             # Gtk.TreeIter
-            treeIter = self.__directMessageTreeIterMap[postData['channel_id']]
+            treeIter = self.__directMessageTreeIterMap[channelId]
 
             liststoreTeamDirectMessages.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
 
