@@ -2,10 +2,19 @@
 
 class FileModel:
     __fileId = None
-    __serverModel = None
+    __fileContents = None
+    __serverModel = None  # Mattermost.ServerLoggedInModel
 
-    def __init__(self, serverModel, fileSomething):
-        pass
+    def __init__(self, serverModel, fileId, fileContents):
+        self.__serverModel = serverModel
+        self.__fileId = fileId
+        self.__fileContents = fileContents
+
+    def getId(self):
+        return self.__fileId
+
+    def getFileContents(self):
+        return self.__fileContents
 
     def getFileThumbnail(self):
         raise Exception("*UNIMPLEMENTED*")

@@ -1,4 +1,6 @@
 
+from gi.repository import Gtk
+
 from .EditTeamController import EditTeamController
 from .TeamController import TeamController
 
@@ -162,16 +164,28 @@ class TeamsListController:
 
         for team in profile.getTeams():
             if team['open-on-startup']:
-                teamKey = team['username'] + ":" + team['password'] + "@" + team['url']
-                if teamKey not in self.__teamControllers:
-                    self.__teamControllers[teamKey] = TeamController(
-                        self.__application,
-                        team['url'],
-                        team['username'],
-                        team['password'],
-                        team['team']
+                try:
+                    teamKey = team['username'] + ":" + team['password'] + "@" + team['url']
+                    if teamKey not in self.__teamControllers:
+                        self.__teamControllers[teamKey] = TeamController(
+                            self.__application,
+                            team['url'],
+                            team['username'],
+                            team['password'],
+                            team['team']
+                        )
+                    self.__teamControllers[teamKey].show()
+                except Exception as exception:
+                    dialog = Gtk.Dialog(
+                        "Error while connecting to %s - %s as %s" % (team['url'], team['team'], team['username']),
+                        self.__window,
+                        0,
+                        (Gtk.STOCK_OK, Gtk.ResponseType.OK)
                     )
-                self.__teamControllers[teamKey].show()
+                    dialog.get_content_area().add(Gtk.Label(str(exception)))
+                    dialog.show_all()
+                    dialog.run()
+                    dialog.destroy()
 
 
     def __rebuildTeamsList(self):

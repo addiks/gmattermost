@@ -9,6 +9,7 @@ from _thread import start_new_thread
 
 from .TeamModel import TeamModel
 from .UserModel import UserModel
+from .FileModel import FileModel
 
 class ServerLoggedInModel:
     __serverModel = None      # ServerModel
@@ -280,10 +281,9 @@ class ServerLoggedInModel:
         return imageData
 
     def getFile(self, fileId):
-        raise Exception("*UNIMPLEMENTED*")
-        headers, result = self.callServer("GET", "/files/%s/get" % fileId)
+        headers, fileContents = self.callServer("GET", "/files/%s/get" % fileId, returnPlainResponse=True)
 
-        return FileModel(self, fileSomething) # TODO
+        return FileModel(self, fileId, fileContents)
 
     def savePreferences(self):
         raise Exception("*UNIMPLEMENTED*")

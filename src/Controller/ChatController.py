@@ -1,5 +1,10 @@
 
+from gi.repository import GLib, Gtk, GdkPixbuf, Notify
+
+from ..Model.Mattermost.PostModel import PostModel
+
 import json
+import os
 
 class ChatController:
     __gladeBuilder = None        # Gtk.Builder
@@ -8,7 +13,7 @@ class ChatController:
     __windowTitleTemplate = None # string
     __channelModel = None        # Mattermost.ChannelModel
     __isWindowOpen = False       # boolean
-    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
+#    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
 
     def __init__(self, application, channelModel):
         self.__application = application
@@ -42,28 +47,19 @@ class ChatController:
         print("onTypingEvent: " + repr(data))
 
     def onMessagePostedEvent(self, data=None):
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         # Gtk.Window
         window = self.__window
 
-        # Gtk.ListStore
-        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+        # Mattermost.ChannelModel
+        channelModel = self.__channelModel
 
         postJson = data['post']
         postData = json.loads(postJson)
 
-        # TODO: load post-model properly
+        # Mattermost.PostModel
+        post = PostModel.fromJsonPostObject(channelModel, postData)
 
-        # Gtk.TreeIter
-        treeIter = liststoreChatContent.append()
-
-        self.__postTreeIterMap[postData['id']] = treeIter
-
-        liststoreChatContent.set_value(treeIter, 0, postData['user_id'])
-        liststoreChatContent.set_value(treeIter, 1, data['sender_name'])
-        liststoreChatContent.set_value(treeIter, 2, postData['message'])
+        self.__addPost(post)
 
         window.present()
 
@@ -73,16 +69,38 @@ class ChatController:
         # Gtk.Builder
         gladeBuilder = self.__gladeBuilder
 
-        # Gtk.ListStore
-        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+        # Mattermost.ChannelModel
+        channelModel = self.__channelModel
+
+        # Gtk.TextBuffer
+        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
 
         postJson = data['post']
         postData = json.loads(postJson)
 
-        # Gtk.TreeIter
-        treeIter = self.__postTreeIterMap[postData['id']]
+        # Mattermost.PostModel
+        post = PostModel.fromJsonPostObject(channelModel, postData)
 
-        liststoreChatContent.set_value(treeIter, 2, postData['message'])
+        # Gtk.TextMark
+        beginMark = textbufferChatContent.get_mark("post_%s_message_begin" % post.getId())
+
+        # Gtk.TextMark
+        endMark = textbufferChatContent.get_mark("post_%s_message_end" % post.getId())
+
+        textbufferChatContent.delete(
+            textbufferChatContent.get_iter_at_mark(beginMark),
+            textbufferChatContent.get_iter_at_mark(endMark)
+        )
+
+        # Gtk.TextIter
+        textIter = textbufferChatContent.get_iter_at_mark(beginMark)
+
+        textbufferChatContent.insert(
+            textIter,
+            post.getMessage()
+        )
+
+        textbufferChatContent.move_mark(endMark, textIter)
 
         print("onMessageEditedEvent: " + repr(data))
 
@@ -90,16 +108,28 @@ class ChatController:
         # Gtk.Builder
         gladeBuilder = self.__gladeBuilder
 
-        # Gtk.ListStore
-        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+        # ChannelModel
+        channelModel = self.__channelModel
+
+        # Gtk.TextBuffer
+        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
 
         postJson = data['post']
         postData = json.loads(postJson)
 
-        # Gtk.TreeIter
-        treeIter = self.__postTreeIterMap[postData['id']]
+        # Mattermost.PostModel
+        post = PostModel.fromJsonPostObject(channelModel, postData)
 
-        liststoreChatContent.remove(treeIter)
+        # Gtk.TextMark
+        beginMark = textbufferChatContent.get_mark("post_%s_begin" % post.getId())
+
+        # Gtk.TextMark
+        endMark = textbufferChatContent.get_mark("post_%s_end" % post.getId())
+
+        textbufferChatContent.delete(
+            textbufferChatContent.get_iter_at_mark(beginMark),
+            textbufferChatContent.get_iter_at_mark(endMark)
+        )
 
         print("onMessageDeletedEvent: " + repr(data))
 
@@ -134,8 +164,8 @@ class ChatController:
         # ChannelModel
         channelModel = self.__channelModel
 
-        # Gtk.ListStore
-        liststoreChatContent = gladeBuilder.get_object('liststoreChatContent')
+        # Gtk.TextBuffer
+        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
 
         # TeamModel
         teamModel = self.__channelModel.getTeamModel()
@@ -157,26 +187,108 @@ class ChatController:
             windowTitle = windowTitle.replace("%"+variableKey+"%", variables[variableKey])
         window.set_title(windowTitle)
 
-        liststoreChatContent.clear()
+        textbufferChatContent.set_text("", 0)
 
         posts = channelModel.getLastPosts()
         for postId in posts:
-            # PostModel
+            # Mattermost.PostModel
             post = posts[postId]
 
-            user = post.getUser()
+            self.__addPost(post)
 
-            treeIter = liststoreChatContent.append()
+    def __addPost(self, post):
+        # Mattermost.PostModel
 
-            self.__postTreeIterMap[postId] = treeIter
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
 
-            userId = ""
-            userName = ""
+        # TeamModel
+        teamModel = self.__channelModel.getTeamModel()
 
-            if user != None:
-                userId = user.getId()
-                userName = user.getUseName()
+        # ServerLoggedInModel
+        serverModel = teamModel.getServer()
 
-            liststoreChatContent.set_value(treeIter, 0, userId)
-            liststoreChatContent.set_value(treeIter, 1, userName)
-            liststoreChatContent.set_value(treeIter, 2, post.getMessage())
+        # Gtk.TextBuffer
+        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
+
+        user = post.getUser()
+
+        userId = ""
+        userName = ""
+
+        if user != None:
+            userId = user.getId()
+            userName = user.getUseName()
+
+        # Gtk.TextIter
+        textIter = textbufferChatContent.get_end_iter()
+
+        textbufferChatContent.create_mark(
+            "post_%s_begin" % post.getId(),
+            textIter.copy(),
+            True
+        )
+
+        textbufferChatContent.insert(textIter, "%s: " % userName, len(userName) + 2)
+
+        textbufferChatContent.create_mark(
+            "post_%s_message_begin" % post.getId(),
+            textIter.copy(),
+            True
+        )
+
+        textbufferChatContent.insert(textIter, post.getMessage())
+
+        textbufferChatContent.create_mark(
+            "post_%s_message_end" % post.getId(),
+            textIter.copy(),
+            True
+        )
+
+        for fileId in post.getFileIds():
+            cacheId = "file." + fileId + ".dat"
+            cachedFilePath = self.__application.getCacheFilePath(cacheId)
+
+            if not os.path.exists(cachedFilePath):
+                # Mattermost.FileModel
+                fileModel = serverModel.getFile(fileId)
+
+                self.__application.putCache(cacheId, fileModel.getFileContents())
+
+            if os.path.exists(cachedFilePath):
+                isImage = True # TODO: actually find this out
+                if isImage:
+                    # GdkPixbuf.Pixbuf
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file(
+                        cachedFilePath
+                    )
+
+                    textbufferChatContent.create_mark(
+                        "post_%s_file_%s_begin" % (post.getId(), fileId),
+                        textIter.copy(),
+                        True
+                    )
+
+                    textbufferChatContent.insert(textIter, "\n", 1)
+
+                    textbufferChatContent.create_mark(
+                        "post_%s_file_%s_pixbuf_begin" % (post.getId(), fileId),
+                        textIter.copy(),
+                        True
+                    )
+
+                    textbufferChatContent.insert_pixbuf(textIter, pixbuf)
+
+                    textbufferChatContent.create_mark(
+                        "post_%s_file_%s_end" % (post.getId(), fileId),
+                        textIter.copy(),
+                        True
+                    )
+
+        textbufferChatContent.insert(textIter, "\n", 1)
+
+        textbufferChatContent.create_mark(
+            "post_%s_end" % post.getId(),
+            textIter.copy(),
+            True
+        )

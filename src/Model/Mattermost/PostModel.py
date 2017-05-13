@@ -20,9 +20,13 @@ class PostModel:
 
     @staticmethod
     def fromJsonPostObject(channelModel, data):
-
+        print(repr(data))
         if data['channel_id'] != channelModel.getId():
             pass # TODO: raise Exception
+
+        fileIds = []
+        if "file_ids" in data:
+            fileIds = data["file_ids"]
 
         return PostModel(
             channelModel,
@@ -42,6 +46,7 @@ class PostModel:
             data['props'],
             data['hashtags'],
             data['pending_post_id'],
+            fileIds
         )
 
     def __init__(
@@ -62,7 +67,8 @@ class PostModel:
         postType,
         props,
         hashtags,
-        pendingPostId
+        pendingPostId,
+        fileIds
     ):
         self.__channelModel = channelModel
         self.__postId = postId
@@ -81,9 +87,16 @@ class PostModel:
         self.__props = props
         self.__hashtags = hashtags
         self.__pendingPostId = pendingPostId
+        self.__fileIds = fileIds
+
+    def getId(self):
+        return self.__postId
 
     def getMessage(self):
         return self.__message
+
+    def getUserId(self):
+        return self.__userId
 
     def getUser(self):
         # TeamModel
@@ -93,3 +106,9 @@ class PostModel:
         serverModel = teamModel.getServer()
 
         return serverModel.getUserById(self.__userId)
+
+    def getMessage(self):
+        return self.__message
+
+    def getFileIds(self):
+        return self.__fileIds
