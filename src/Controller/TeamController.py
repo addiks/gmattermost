@@ -255,6 +255,12 @@ class TeamController:
 
     def __addChannelsToView(self, channels):
 
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        # Gtk.ListStore
+        liststoreTeamDirectMessages = gladeBuilder.get_object('liststoreTeamDirectMessages')
+
         directMessageUserIdToTreeIterMap = {}
 
         for channel in channels:
