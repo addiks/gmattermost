@@ -151,14 +151,17 @@ class TeamModel:
         raise Exception("*UNIMPLEMENTED*")
         headers, result = self.callServer("GET", "/channels/members")
 
-    def getChannel(self, channelId): # return ChannelModel
+    def getChannel(self, channelId):
         headers, result = self.callServer("GET", "/channels/%s/" % channelId)
 
         print(repr(result))
 
-        channelJsonData = result['channel']
+        # Mattermost.ChannelModel
+        channel = None
 
-        channel = ChannelModel.fromJsonChannelObject(self, channelJsonData)
+        if 'channel' in result:
+            channelJsonData = result['channel']
+            channel = ChannelModel.fromJsonChannelObject(self, channelJsonData)
 
         return channel
 
