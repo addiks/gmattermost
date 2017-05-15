@@ -13,6 +13,7 @@ class ChatController:
     __windowTitleTemplate = None # string
     __channelModel = None        # Mattermost.ChannelModel
     __isWindowOpen = False       # boolean
+    __lastUserId = None
 #    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
 
     def __init__(self, application, channelModel):
@@ -211,6 +212,7 @@ class ChatController:
         # Gtk.TextBuffer
         textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
 
+        # Mattermost.UserModel
         user = post.getUser()
 
         userId = ""
@@ -229,7 +231,55 @@ class ChatController:
             True
         )
 
-        textbufferChatContent.insert(textIter, "%s: " % userName, len(userName) + 2)
+        if self.__lastUserId != userId:
+            textbufferChatContent.create_mark(
+                "post_%s_avatar_begin" % post.getId(),
+                textIter.copy(),
+                True
+            )
+
+            if user != None:
+                cacheId = "avatar." + user.getId() + ".png"
+                avatarImagePath = self.__application.getCacheFilePath(cacheId)
+
+                if not os.path.exists(avatarImagePath):
+                    avatarImageData = user.getImage()
+                    self.__application.putCache(cacheId, avatarImageData)
+
+                if os.path.exists(avatarImagePath):
+                    # GdkPixbuf.Pixbuf
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                        avatarImagePath,
+                        width=48,
+                        height=48,
+                        preserve_aspect_ratio=False
+                    )
+
+                    textbufferChatContent.insert_pixbuf(textIter, pixbuf)
+
+            textbufferChatContent.create_mark(
+                "post_%s_avatar_end" % post.getId(),
+                textIter.copy(),
+                True
+            )
+
+            textbufferChatContent.create_mark(
+                "post_%s_username_begin" % post.getId(),
+                textIter.copy(),
+                True
+            )
+
+            textbufferChatContent.insert(textIter, userName)
+
+            textbufferChatContent.create_mark(
+                "post_%s_username_end" % post.getId(),
+                textIter.copy(),
+                True
+            )
+
+            textbufferChatContent.insert(textIter, "\n\n")
+
+            self.__lastUserId = userId
 
         textbufferChatContent.create_mark(
             "post_%s_message_begin" % post.getId(),
@@ -237,7 +287,10 @@ class ChatController:
             True
         )
 
-        textbufferChatContent.insert(textIter, post.getMessage())
+        message = post.getMessage()
+        message = "\t" + message.replace("\n", "\t\n")
+
+        textbufferChatContent.insert(textIter, message)
 
         textbufferChatContent.create_mark(
             "post_%s_message_end" % post.getId(),
@@ -259,8 +312,11 @@ class ChatController:
                 isImage = True # TODO: actually find this out
                 if isImage:
                     # GdkPixbuf.Pixbuf
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file(
-                        cachedFilePath
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                        cachedFilePath,
+                        width=64,
+                        height=64,
+                        preserve_aspect_ratio=False
                     )
 
                     textbufferChatContent.create_mark(
@@ -269,7 +325,7 @@ class ChatController:
                         True
                     )
 
-                    textbufferChatContent.insert(textIter, "\n", 1)
+                    textbufferChatContent.insert(textIter, " ")
 
                     textbufferChatContent.create_mark(
                         "post_%s_file_%s_pixbuf_begin" % (post.getId(), fileId),
@@ -285,7 +341,7 @@ class ChatController:
                         True
                     )
 
-        textbufferChatContent.insert(textIter, "\n", 1)
+        textbufferChatContent.insert(textIter, "\n")
 
         textbufferChatContent.create_mark(
             "post_%s_end" % post.getId(),
