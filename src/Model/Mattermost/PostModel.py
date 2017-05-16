@@ -110,5 +110,8 @@ class PostModel:
     def getMessage(self):
         return self.__message
 
+    def hasFiles(self):
+        return len(self.__fileIds) > 0
+
     def getFileIds(self):
         return self.__fileIds

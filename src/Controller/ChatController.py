@@ -277,7 +277,7 @@ class ChatController:
                 True
             )
 
-            textbufferChatContent.insert(textIter, "\n\n")
+            textbufferChatContent.insert(textIter, "\n")
 
             self.__lastUserId = userId
 
@@ -298,48 +298,51 @@ class ChatController:
             True
         )
 
-        for fileId in post.getFileIds():
-            cacheId = "file." + fileId + ".dat"
-            cachedFilePath = self.__application.getCacheFilePath(cacheId)
+        if post.hasFiles():
+            textbufferChatContent.insert(textIter, "\n")
 
-            if not os.path.exists(cachedFilePath):
-                # Mattermost.FileModel
-                fileModel = serverModel.getFile(fileId)
+            for fileId in post.getFileIds():
+                cacheId = "file." + fileId + ".dat"
+                cachedFilePath = self.__application.getCacheFilePath(cacheId)
 
-                self.__application.putCache(cacheId, fileModel.getFileContents())
+                if not os.path.exists(cachedFilePath):
+                    # Mattermost.FileModel
+                    fileModel = serverModel.getFile(fileId)
 
-            if os.path.exists(cachedFilePath):
-                isImage = True # TODO: actually find this out
-                if isImage:
-                    # GdkPixbuf.Pixbuf
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                        cachedFilePath,
-                        width=64,
-                        height=64,
-                        preserve_aspect_ratio=False
-                    )
+                    self.__application.putCache(cacheId, fileModel.getFileContents())
 
-                    textbufferChatContent.create_mark(
-                        "post_%s_file_%s_begin" % (post.getId(), fileId),
-                        textIter.copy(),
-                        True
-                    )
+                if os.path.exists(cachedFilePath):
+                    isImage = True # TODO: actually find this out
+                    if isImage:
+                        # GdkPixbuf.Pixbuf
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                            cachedFilePath,
+                            width=64,
+                            height=64,
+                            preserve_aspect_ratio=False
+                        )
 
-                    textbufferChatContent.insert(textIter, " ")
+                        textbufferChatContent.create_mark(
+                            "post_%s_file_%s_begin" % (post.getId(), fileId),
+                            textIter.copy(),
+                            True
+                        )
 
-                    textbufferChatContent.create_mark(
-                        "post_%s_file_%s_pixbuf_begin" % (post.getId(), fileId),
-                        textIter.copy(),
-                        True
-                    )
+                        textbufferChatContent.insert(textIter, " ")
 
-                    textbufferChatContent.insert_pixbuf(textIter, pixbuf)
+                        textbufferChatContent.create_mark(
+                            "post_%s_file_%s_pixbuf_begin" % (post.getId(), fileId),
+                            textIter.copy(),
+                            True
+                        )
 
-                    textbufferChatContent.create_mark(
-                        "post_%s_file_%s_end" % (post.getId(), fileId),
-                        textIter.copy(),
-                        True
-                    )
+                        textbufferChatContent.insert_pixbuf(textIter, pixbuf)
+
+                        textbufferChatContent.create_mark(
+                            "post_%s_file_%s_end" % (post.getId(), fileId),
+                            textIter.copy(),
+                            True
+                        )
 
         textbufferChatContent.insert(textIter, "\n")
 
