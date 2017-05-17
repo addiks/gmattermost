@@ -8,6 +8,7 @@ import os
 
 class ChatController:
     __gladeBuilder = None        # Gtk.Builder
+    __styleProvider = None       # Gtk.StyleProvider
     __application = None         # Application
     __window = None              # Gtk.Window
     __windowTitleTemplate = None # string
@@ -25,14 +26,43 @@ class ChatController:
         channelModel.registerPostEditedListener(self.onMessageEditedEvent)
         channelModel.registerPostDeletedListener(self.onMessageDeletedEvent)
 
+    def __getGladeObject(self, objectId):
+        # Gtk.Builder
+        gladeBuilder = self.__gladeBuilder
+
+        gtkObject = gladeBuilder.get_object(objectId)
+
+        self.__applyStyleToGtkObject(gtkObject)
+
+        return gtkObject
+
+    def __applyStyleToGtkObject(self, gtkObject):
+        # Gtk.Object
+
+        if issubclass(type(gtkObject), Gtk.Widget):
+            # Gtk.StyleContext
+            styleContext = gtkObject.get_style_context()
+
+            styleContext.add_provider(self.__styleProvider, 800)
+
+        if issubclass(type(gtkObject), Gtk.Container):
+            for childGtkObject in gtkObject.get_children():
+                self.__applyStyleToGtkObject(childGtkObject)
+
     def show(self):
         if not self.__isWindowOpen:
             self.__isWindowOpen = True
+
+            self.__styleProvider = self.__application.createStyleProvider('chat')
+
             self.__gladeBuilder = self.__application.createGladeBuilder('chat')
             self.__gladeBuilder.connect_signals(self)
-            self.__window = self.__gladeBuilder.get_object('windowChat')
+
+            self.__window = self.__getGladeObject('windowChat')
+            self.__window.get_style_context().add_provider(self.__styleProvider, 800)
             self.__windowTitleTemplate = self.__window.get_title()
             self.__window.show_all()
+
             self.__reload()
 
         else:
@@ -42,9 +72,6 @@ class ChatController:
         self.__isWindowOpen = False
 
     def onTypingEvent(self, data=None):
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         print("onTypingEvent: " + repr(data))
 
     def onMessagePostedEvent(self, data=None):
@@ -67,14 +94,11 @@ class ChatController:
         print("onMessagePostedEvent: " + repr(data))
 
     def onMessageEditedEvent(self, data=None):
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         # Mattermost.ChannelModel
         channelModel = self.__channelModel
 
         # Gtk.TextBuffer
-        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
 
         postJson = data['post']
         postData = json.loads(postJson)
@@ -106,14 +130,11 @@ class ChatController:
         print("onMessageEditedEvent: " + repr(data))
 
     def onMessageDeletedEvent(self, data=None):
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         # ChannelModel
         channelModel = self.__channelModel
 
         # Gtk.TextBuffer
-        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
 
         postJson = data['post']
         postData = json.loads(postJson)
@@ -142,14 +163,11 @@ class ChatController:
             self.__doSubmit()
 
     def __doSubmit(self):
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         # ChannelModel
         channelModel = self.__channelModel
 
         # Gtk.EntryBuffer
-        entrybufferChatInput = gladeBuilder.get_object('entrybufferChatInput')
+        entrybufferChatInput = self.__getGladeObject('entrybufferChatInput')
 
         message = entrybufferChatInput.get_text()
         channelModel.createPost(message)
@@ -166,7 +184,7 @@ class ChatController:
         channelModel = self.__channelModel
 
         # Gtk.TextBuffer
-        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
 
         # TeamModel
         teamModel = self.__channelModel.getTeamModel()
@@ -190,7 +208,7 @@ class ChatController:
 
         textbufferChatContent.set_text("", 0)
 
-        posts = channelModel.getLastPosts()
+        posts = channelModel.getPosts()
         for postId in posts:
             # Mattermost.PostModel
             post = posts[postId]
@@ -210,7 +228,7 @@ class ChatController:
         serverModel = teamModel.getServer()
 
         # Gtk.TextBuffer
-        textbufferChatContent = gladeBuilder.get_object('textbufferChatContent')
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
 
         # Mattermost.UserModel
         user = post.getUser()

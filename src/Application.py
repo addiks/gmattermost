@@ -89,3 +89,15 @@ class Application(Gtk.Application):
         gladeBuilder.add_from_file(gladeFilePath)
 
         return gladeBuilder
+
+    def createStyleProvider(self, name):
+        assetPath = self.__assetPath
+
+        cssFilePath = assetPath + "styles/" + name + ".css"
+
+        cssFile = Gio.File.new_for_path(cssFilePath)
+
+        cssProvider = Gtk.CssProvider()
+        cssProvider.load_from_file(cssFile)
+
+        return cssProvider
