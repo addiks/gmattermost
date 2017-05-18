@@ -2,6 +2,7 @@
 from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 
 from ..Model.Mattermost.PostModel import PostModel
+from ..Gtk.GtkStyleProviderToTextTagAdapter import GtkStyleProviderToTextTagAdapter
 
 import json
 import os
@@ -9,6 +10,7 @@ import os
 class ChatController:
     __gladeBuilder = None        # Gtk.Builder
     __styleProvider = None       # Gtk.StyleProvider
+    __styleTextTagAdapter = None # Gtk.GtkStyleProviderToTextTagAdapter
     __application = None         # Application
     __window = None              # Gtk.Window
     __windowTitleTemplate = None # string
@@ -54,6 +56,7 @@ class ChatController:
             self.__isWindowOpen = True
 
             self.__styleProvider = self.__application.createStyleProvider('chat')
+            self.__styleTextTagAdapter = GtkStyleProviderToTextTagAdapter(self.__styleProvider)
 
             self.__gladeBuilder = self.__application.createGladeBuilder('chat')
             self.__gladeBuilder.connect_signals(self)
