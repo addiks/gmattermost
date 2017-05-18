@@ -2,21 +2,21 @@
 from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 
 from ..Model.Mattermost.PostModel import PostModel
-from ..Gtk.GtkStyleProviderToTextTagAdapter import GtkStyleProviderToTextTagAdapter
+from ..Gtk.GtkStyleProviderToTextViewAdapter import GtkStyleProviderToTextViewAdapter
 
 import json
 import os
 
 class ChatController:
-    __gladeBuilder = None        # Gtk.Builder
-    __styleProvider = None       # Gtk.StyleProvider
-    __styleTextTagAdapter = None # Gtk.GtkStyleProviderToTextTagAdapter
-    __application = None         # Application
-    __window = None              # Gtk.Window
-    __windowTitleTemplate = None # string
-    __channelModel = None        # Mattermost.ChannelModel
-    __isWindowOpen = False       # boolean
-    __lastUserId = None
+    __gladeBuilder = None         # Gtk.Builder
+    __styleProvider = None        # Gtk.StyleProvider
+    __styleTextViewAdapter = None # Gtk.GtkStyleProviderToTextViewAdapter
+    __application = None          # Application
+    __window = None               # Gtk.Window
+    __windowTitleTemplate = None  # string
+    __channelModel = None         # Mattermost.ChannelModel
+    __isWindowOpen = False        # boolean
+    __lastUserId = None           # string
 #    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
 
     def __init__(self, application, channelModel):
@@ -56,7 +56,7 @@ class ChatController:
             self.__isWindowOpen = True
 
             self.__styleProvider = self.__application.createStyleProvider('chat')
-            self.__styleTextTagAdapter = GtkStyleProviderToTextTagAdapter(self.__styleProvider)
+            self.__styleTextViewAdapter = GtkStyleProviderToTextViewAdapter(self.__styleProvider)
 
             self.__gladeBuilder = self.__application.createGladeBuilder('chat')
             self.__gladeBuilder.connect_signals(self)
@@ -186,8 +186,13 @@ class ChatController:
         # ChannelModel
         channelModel = self.__channelModel
 
+        # Gtk.TextView
+        textviewChatContent = self.__getGladeObject('textviewChatContent')
+
         # Gtk.TextBuffer
         textbufferChatContent = self.__getGladeObject('textbufferChatContent')
+
+        self.__styleTextViewAdapter.attachTextView(textviewChatContent)
 
         # TeamModel
         teamModel = self.__channelModel.getTeamModel()
