@@ -17,6 +17,7 @@ class ChatController:
     __channelModel = None         # Mattermost.ChannelModel
     __isWindowOpen = False        # boolean
     __lastUserId = None           # string
+    __sections = []               # list([name, beginMark, list(classes)])
 #    __postTreeIterMap = {}       # dict(Gtk.TreeIter)
 
     def __init__(self, application, channelModel):
@@ -226,9 +227,6 @@ class ChatController:
     def __addPost(self, post):
         # Mattermost.PostModel
 
-        # Gtk.Builder
-        gladeBuilder = self.__gladeBuilder
-
         # TeamModel
         teamModel = self.__channelModel.getTeamModel()
 
@@ -251,18 +249,12 @@ class ChatController:
         # Gtk.TextIter
         textIter = textbufferChatContent.get_end_iter()
 
-        textbufferChatContent.create_mark(
-            "post_%s_begin" % post.getId(),
-            textIter.copy(),
-            True
-        )
+        self.__beginPostSection(textIter, "post_%s" % post.getId(), ['post'])
 
         if self.__lastUserId != userId:
-            textbufferChatContent.create_mark(
-                "post_%s_avatar_begin" % post.getId(),
-                textIter.copy(),
-                True
-            )
+
+
+            self.__beginPostSection(textIter, "post_%s_avatar" % post.getId(), ['avatar'])
 
             if user != None:
                 cacheId = "avatar." + user.getId() + ".png"
@@ -283,46 +275,28 @@ class ChatController:
 
                     textbufferChatContent.insert_pixbuf(textIter, pixbuf)
 
-            textbufferChatContent.create_mark(
-                "post_%s_avatar_end" % post.getId(),
-                textIter.copy(),
-                True
-            )
+            self.__endPostSection(textIter) # end of "post_%s_avatar"
 
-            textbufferChatContent.create_mark(
-                "post_%s_username_begin" % post.getId(),
-                textIter.copy(),
-                True
-            )
+
+            self.__beginPostSection(textIter, "post_%s_username" % post.getId(), ['username'])
 
             textbufferChatContent.insert(textIter, userName)
 
-            textbufferChatContent.create_mark(
-                "post_%s_username_end" % post.getId(),
-                textIter.copy(),
-                True
-            )
+            self.__endPostSection(textIter) # end of "post_%s_username"
+
 
             textbufferChatContent.insert(textIter, "\n")
 
             self.__lastUserId = userId
 
-        textbufferChatContent.create_mark(
-            "post_%s_message_begin" % post.getId(),
-            textIter.copy(),
-            True
-        )
+        self.__beginPostSection(textIter, "post_%s_message" % post.getId(), ['message'])
 
         message = post.getMessage()
         message = "\t" + message.replace("\n", "\t\n")
 
         textbufferChatContent.insert(textIter, message)
 
-        textbufferChatContent.create_mark(
-            "post_%s_message_end" % post.getId(),
-            textIter.copy(),
-            True
-        )
+        self.__endPostSection(textIter) # end of "post_%s_message"
 
         if post.hasFiles():
             textbufferChatContent.insert(textIter, "\n")
@@ -348,32 +322,63 @@ class ChatController:
                             preserve_aspect_ratio=False
                         )
 
-                        textbufferChatContent.create_mark(
-                            "post_%s_file_%s_begin" % (post.getId(), fileId),
-                            textIter.copy(),
-                            True
-                        )
+
+                        self.__beginPostSection(textIter, "post_%s_file_%s" % (post.getId(), fileId), ['file'])
 
                         textbufferChatContent.insert(textIter, " ")
 
-                        textbufferChatContent.create_mark(
-                            "post_%s_file_%s_pixbuf_begin" % (post.getId(), fileId),
-                            textIter.copy(),
-                            True
-                        )
+
+                        self.__beginPostSection(textIter, "post_%s_file_%s_pixbuf" % (post.getId(), fileId), ['pixbuf'])
 
                         textbufferChatContent.insert_pixbuf(textIter, pixbuf)
 
-                        textbufferChatContent.create_mark(
-                            "post_%s_file_%s_end" % (post.getId(), fileId),
-                            textIter.copy(),
-                            True
-                        )
+                        self.__endPostSection(textIter) # end of "post_%s_file_%s_pixbuf"
+
+
+                        self.__endPostSection(textIter) # end of "post_%s_file_%s"
 
         textbufferChatContent.insert(textIter, "\n")
 
-        textbufferChatContent.create_mark(
-            "post_%s_end" % post.getId(),
+        self.__endPostSection(textIter) # end of "post_%s"
+
+    def __beginPostSection(self, textIter, name, classes=None):
+
+        # Gtk.TextBuffer
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
+
+        beginMark = textbufferChatContent.create_mark(
+            str(name) + "_begin",
             textIter.copy(),
             True
         )
+
+        # GtkTagTable
+        tagTable = textbufferChatContent.get_tag_table()
+
+        self.__sections.append((name, beginMark, classes, tagTable.get_size()))
+
+    def __endPostSection(self, textIter):
+
+        # Gtk.TextBuffer
+        textbufferChatContent = self.__getGladeObject('textbufferChatContent')
+
+        name, beginMark, classes, priority = self.__sections.pop()
+
+        # Gtk.TextIter
+        beginIter = textbufferChatContent.get_iter_at_mark(beginMark)
+
+        endMark = textbufferChatContent.create_mark(
+            str(name) + "_end",
+            textIter.copy(),
+            True
+        )
+
+        tagName = name
+        if classes != None and len(classes) > 0:
+            tagName += "_" + "_".join(classes)
+
+        # Gtk.TextTag
+        textTag = textbufferChatContent.create_tag(tagName)
+        textTag.set_priority(priority)
+
+        textbufferChatContent.apply_tag(textTag, beginIter, textIter)

@@ -2,3 +2,7 @@
 #chat-header-members-count {
     color: #AAA;
 }
+
+.username {
+    font-weight: bold;
+}
