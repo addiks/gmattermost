@@ -292,7 +292,6 @@ class ChatController:
         self.__beginPostSection(textIter, "post_%s_message" % post.getId(), ['message'])
 
         message = post.getMessage()
-        message = "\t" + message.replace("\n", "\t\n")
 
         textbufferChatContent.insert(textIter, message)
 

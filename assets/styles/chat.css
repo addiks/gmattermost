@@ -3,6 +3,17 @@
     color: #AAA;
 }
 
+.avatar {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
 .username {
+    font-size: 16pt;
     font-weight: bold;
+}
+
+.message {
+    margin-left: 20px;
+    margin-top: 10px;
 }
