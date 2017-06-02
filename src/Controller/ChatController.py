@@ -1,7 +1,7 @@
 
 from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 
-from ..Model.Mattermost.PostModel import PostModel
+from Mattermost.PostModel import PostModel
 from ..Gtk.GtkStyleProviderToTextViewAdapter import GtkStyleProviderToTextViewAdapter
 
 import json

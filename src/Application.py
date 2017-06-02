@@ -10,7 +10,7 @@ from .Controller.TeamsListController import TeamsListController
 from .Controller.IndicatorController import IndicatorController
 from .Model.ProfileModel import ProfileModel
 from .Model.CacheModel import CacheModel
-from .Model.Mattermost.ServerModel import ServerModel
+from Mattermost.ServerModel import ServerModel
 
 class Application(Gtk.Application):
     __profileModel = None # ProfileModel

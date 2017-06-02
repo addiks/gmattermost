@@ -58,8 +58,6 @@ class GtkStyleProviderToTextViewAdapter:
             if cssPropertyName != None:
                 cssPropertyValue = styleContext.get_property(cssPropertyName, styleContext.get_state())
 
-                print([cssPropertyName, prop.name, cssPropertyValue])
-
                 if cssPropertyValue != None:
                     self.__ignoreEvents = True
                     textTag.set_property(prop.name, cssPropertyValue)
