@@ -16,6 +16,7 @@ class Application(Gtk.Application):
     __profileModel = None # ProfileModel
     __cacheModel = None # CacheModel
     __indicatorController = None # IndicatorController
+    __teamsListController = None # TeamsListController
     __assetPath = None
     __servers = {}
 
@@ -54,8 +55,12 @@ class Application(Gtk.Application):
             self.showTeamsListWindow()
 
     def showTeamsListWindow(self, force=False, doStartup=True):
-        teamsController = TeamsListController(self)
-        teamsController.show(force, doStartup)
+        if self.__teamsListController is None:
+            self.__teamsListController = TeamsListController(self)
+        self.__teamsListController.show(force, doStartup)
+
+    def resetTeamsListWindow(self):
+        self.__teamsListController = None
 
     def getAssetPath(self):
         return self.__assetPath

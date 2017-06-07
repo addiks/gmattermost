@@ -21,6 +21,9 @@ class TeamsListController:
 
         self.__rebuildTeamsList()
 
+    def onWindowDestroy(self, event, data=None):
+        self.__application.resetTeamsListWindow()
+
     def onTeamsTreeViewButtonPress(self, treeView, event, data=None):
         if event.button == 3: # right click
             # Gtk.Menu
@@ -174,6 +177,7 @@ class TeamsListController:
 
         if profile.getShowOnStartup() or force:
             self.__window.show_all()
+            self.__window.present()
 
         if doStartup:
             for team in profile.getTeams():

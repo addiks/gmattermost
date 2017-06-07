@@ -22,6 +22,7 @@
     <property name="title" translatable="yes">gMattermost - List of Teams</property>
     <property name="default_width">480</property>
     <property name="default_height">360</property>
+    <signal name="destroy" handler="onWindowDestroy" swapped="no"/>
     <child>
       <object class="GtkBox" id="boxMain">
         <property name="visible">True</property>
