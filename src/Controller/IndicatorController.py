@@ -29,4 +29,4 @@ class IndicatorController:
         self.__application.shutdown()
 
     def onShowListOfTeamsPressed(self, menuItem):
-        self.__application.showTeamsListWindow(True)
+        self.__application.showTeamsListWindow(True, False)

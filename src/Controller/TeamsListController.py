@@ -58,14 +58,27 @@ class TeamsListController:
             teamName = treeModel.get_value(treeIter, 3)
             password = treeModel.get_value(treeIter, 4)
 
-            teamController = TeamController(
-                self.__application,
-                url,
-                username,
-                password,
-                teamName
-            )
-            teamController.show()
+            try:
+                teamController = TeamController(
+                    self.__application,
+                    url,
+                    username,
+                    password,
+                    teamName
+                )
+                teamController.show()
+
+            except Exception as exception:
+                dialog = Gtk.Dialog(
+                    "Error while connecting to %s - %s as %s" % (url, teamName, username),
+                    self.__window,
+                    0,
+                    (Gtk.STOCK_OK, Gtk.ResponseType.OK)
+                )
+                dialog.get_content_area().add(Gtk.Label(str(exception)))
+                dialog.show_all()
+                dialog.run()
+                dialog.destroy()
 
     def onTeamEditItemActivate(self, menuItem, data=None):
         # Gtk.TreeSelection
@@ -155,38 +168,38 @@ class TeamsListController:
         teamsListstore.set_value(treeIter, 2, doesConnectOnStartup)
         profile.setConnectTeamOnStartup(url, teamName, username, doesConnectOnStartup)
 
-    def show(self, force=False):
+    def show(self, force=False, doStartup=True):
         # ProfileModel
         profile = self.__application.getProfileModel()
 
         if profile.getShowOnStartup() or force:
             self.__window.show_all()
 
-        for team in profile.getTeams():
-            if team['open-on-startup']:
-                try:
-                    teamKey = team['username'] + ":" + team['password'] + "@" + team['url']
-                    if teamKey not in self.__teamControllers:
-                        self.__teamControllers[teamKey] = TeamController(
-                            self.__application,
-                            team['url'],
-                            team['username'],
-                            team['password'],
-                            team['team']
+        if doStartup:
+            for team in profile.getTeams():
+                if team['open-on-startup']:
+                    try:
+                        teamKey = team['username'] + ":" + team['password'] + "@" + team['url']
+                        if teamKey not in self.__teamControllers:
+                            self.__teamControllers[teamKey] = TeamController(
+                                self.__application,
+                                team['url'],
+                                team['username'],
+                                team['password'],
+                                team['team']
+                            )
+                        self.__teamControllers[teamKey].show()
+                    except Exception as exception:
+                        dialog = Gtk.Dialog(
+                            "Error while connecting to %s - %s as %s" % (team['url'], team['team'], team['username']),
+                            self.__window,
+                            0,
+                            (Gtk.STOCK_OK, Gtk.ResponseType.OK)
                         )
-                    self.__teamControllers[teamKey].show()
-                except Exception as exception:
-                    dialog = Gtk.Dialog(
-                        "Error while connecting to %s - %s as %s" % (team['url'], team['team'], team['username']),
-                        self.__window,
-                        0,
-                        (Gtk.STOCK_OK, Gtk.ResponseType.OK)
-                    )
-                    dialog.get_content_area().add(Gtk.Label(str(exception)))
-                    dialog.show_all()
-                    dialog.run()
-                    dialog.destroy()
-
+                        dialog.get_content_area().add(Gtk.Label(str(exception)))
+                        dialog.show_all()
+                        dialog.run()
+                        dialog.destroy()
 
     def __rebuildTeamsList(self):
         # ProfileModel
