@@ -6,6 +6,7 @@ from _thread import start_new_thread
 
 from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 from .ChatController import ChatController
+from Mattermost.ChannelModel import ChannelModel
 
 class TeamController:
     __gladeBuilder = None           # Gtk.Builder
@@ -51,16 +52,20 @@ class TeamController:
         self.__reload()
         self.__window.show_all()
 
-    def getChatController(self, channelId):
+    def getChatController(self, channel):
+        channelId = channel
+        if type(channel) == ChannelModel:
+            channelId = channel.getId()
         if channelId not in self.__channelControllers:
-            # Mattermost.ChannelModel
-            channelModel = self.__teamModel.getChannel(channelId)
+            if type(channel) != ChannelModel:
+                # Mattermost.ChannelModel
+                channel = self.__teamModel.getChannel(channelId)
 
             # ChatController
             chatController = None
 
-            if channelModel != None:
-                chatController = ChatController(self.__application, channelModel)
+            if channel != None:
+                chatController = ChatController(self.__application, channel)
 
             self.__channelControllers[channelId] = chatController
         return self.__channelControllers[channelId]
@@ -172,11 +177,18 @@ class TeamController:
         # Gtk.TreeIter
         treeIter = liststoreTeamDirectMessages.get_iter(treePath)
 
-        channelId = liststoreTeamDirectMessages.get_value(treeIter, 1)
+        remoteUserId = liststoreTeamDirectMessages.get_value(treeIter, 1)
 
-        # ChatController
-        chatController = self.getChatController(channelId)
-        chatController.show()
+        for channelModelCandidate in self.__teamModel.getChannels():
+            if channelModelCandidate.isDirectMessage():
+                remoteUser = channelModelCandidate.getDirectMessageRemoteUser()
+                if remoteUser != None and remoteUser.getId() == remoteUserId:
+                    channelModel = channelModelCandidate
+
+        if channelModel != None:
+            # ChatController
+            chatController = self.getChatController(channelModel)
+            chatController.show()
 
     def onTeamPrivateGroupRowActivated(self, treeView, treePath, column, data=None):
         # Gtk.TreeView

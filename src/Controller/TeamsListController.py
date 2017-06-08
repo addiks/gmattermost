@@ -193,6 +193,7 @@ class TeamsListController:
                                 team['team']
                             )
                         self.__teamControllers[teamKey].show()
+
                     except Exception as exception:
                         dialog = Gtk.Dialog(
                             "Error while connecting to %s - %s as %s" % (team['url'], team['team'], team['username']),
