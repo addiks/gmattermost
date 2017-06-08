@@ -35,7 +35,7 @@ class TeamController:
 
         self.__serverModel = application.getServerModel(url)
 
-        self.__loggedInModel = self.__serverModel.login(username, password)
+        self.__loggedInModel = self.__serverModel.login(username, password, self.__onConnectionClosed)
 
         self.__teamModel = self.__loggedInModel.getTeam(teamName)
 
@@ -350,4 +350,25 @@ class TeamController:
             liststoreTeamPrivateGroups.set_value(treeIter, 0, channel.getDisplayName())
             liststoreTeamPrivateGroups.set_value(treeIter, 1, channel.getId())
             liststoreTeamPrivateGroups.set_value(treeIter, 2, self.FONT_WEIGHT_NORMAL) # hasUnreadMessages
+
+    def __onConnectionClosed(self, serverLoggedInModel, exception):
+        GLib.idle_add(self.__handleLostConnectionUI, serverLoggedInModel, exception)
+        return False
+
+    def __handleLostConnectionUI(self, serverLoggedInModel, exception):
+        url = self.__serverModel.getUrl()
+
+        self.__window.hide()
+
+        dialog = Gtk.Dialog(
+            "Lost connection to mattermost-server %s" % (url),
+            self.__window,
+            0,
+            (Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        )
+        dialog.get_content_area().add(Gtk.Label(str(exception)))
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
+
 #
