@@ -2,11 +2,15 @@
 
 import sys
 import gi
+import os
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 
-sys.path.append("lib/pyMattermost/src")
+basedir = os.path.realpath(__file__)
+basedir = os.path.dirname(basedir)
+
+sys.path.append(basedir + "/lib/pyMattermost/src")
 
 from src.Application import Application
 

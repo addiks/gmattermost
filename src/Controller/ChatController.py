@@ -311,8 +311,9 @@ class ChatController:
                     self.__application.putCache(cacheId, fileModel.getFileContents())
 
                 if os.path.exists(cachedFilePath):
-                    isImage = True # TODO: actually find this out
-                    if isImage:
+                    self.__beginPostSection(textIter, "post_%s_file_%s" % (post.getId(), fileId), ['file'])
+
+                    try:
                         # GdkPixbuf.Pixbuf
                         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
                             cachedFilePath,
@@ -321,8 +322,6 @@ class ChatController:
                             preserve_aspect_ratio=False
                         )
 
-
-                        self.__beginPostSection(textIter, "post_%s_file_%s" % (post.getId(), fileId), ['file'])
 
                         textbufferChatContent.insert(textIter, " ")
 
@@ -333,8 +332,12 @@ class ChatController:
 
                         self.__endPostSection(textIter) # end of "post_%s_file_%s_pixbuf"
 
+                    except GLib.Error:
+                        pass
+                        # This file seems to be no image.
+                        # TODO: show download button
 
-                        self.__endPostSection(textIter) # end of "post_%s_file_%s"
+                    self.__endPostSection(textIter) # end of "post_%s_file_%s"
 
         textbufferChatContent.insert(textIter, "\n")
 

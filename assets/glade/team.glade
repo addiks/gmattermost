@@ -250,6 +250,7 @@
                     <property name="margin_right">5</property>
                     <property name="use_stock">True</property>
                     <property name="always_show_image">True</property>
+                    <signal name="clicked" handler="onSearchMoreChannelsClicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
@@ -319,6 +320,7 @@
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
+                        <signal name="clicked" handler="onCreateChannelClicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -358,6 +360,7 @@
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
+                        <signal name="clicked" handler="onCreatePrivateGroupClicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -469,6 +472,7 @@
                     <property name="margin_right">5</property>
                     <property name="use_stock">True</property>
                     <property name="always_show_image">True</property>
+                    <signal name="clicked" handler="onSearchMoreDirectMessagesClicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="left_attach">2</property>

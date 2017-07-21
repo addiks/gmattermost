@@ -6,6 +6,8 @@ from _thread import start_new_thread
 
 from gi.repository import GLib, Gtk, GdkPixbuf, Notify
 from .ChatController import ChatController
+from .CreateTeamController import CreateTeamController
+from .SearchChannelsController import SearchChannelsController
 from Mattermost.ChannelModel import ChannelModel
 
 class TeamController:
@@ -142,6 +144,22 @@ class TeamController:
             treeIter = self.__directMessageTreeIterMap[channelId]
 
             liststoreTeamDirectMessages.set_value(treeIter, 2, self.FONT_WEIGHT_BOLD)
+
+    def onSearchMoreChannelsClicked(self, button, data=None):
+        searchChannels = SearchChannelsController(self.__application, self.__teamModel)
+        searchChannels.show()
+
+    def onCreateChannelClicked(self, button, data=None):
+        createChannel = CreateTeamController(self.__application, self.__teamModel)
+        createChannel.show()
+
+    def onSearchMoreDirectMessagesClicked(self, button, data=None):
+        searchChannels = SearchChannelsController(self.__application, self.__teamModel, "direct-message")
+        searchChannels.show()
+
+    def onCreatePrivateGroupClicked(self, button, data=None):
+        createChannel = CreateTeamController(self.__application, self.__teamModel, "private-group")
+        createChannel.show()
 
     def onTeamChannelRowActivated(self, treeView, treePath, column, data=None):
         # Gtk.TreeView
